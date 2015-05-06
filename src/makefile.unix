@@ -145,8 +145,8 @@ OBJS= \
     obj/skein.o \
     obj/mixer.o \
     obj/servermixer.o \
-    obj/p2pmessage.o \
-    obj/p2pmessagedb.o \
+    obj/message.o \
+    obj/messagedb.o \
     obj/multisigmixer.o \
     obj/lz4/lz4.o
 
