@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=XCurrency
+Comment=XC P2P Cryptocurrency
+Exec=XCurrency-qt %u
+TryExec=/usr/bin/XCurrency-qt
+Icon=XCurrency
+Terminal=false
+Type=Application
+Categories=Office;Finance;
+X-Desktop-File-Install-Version=0.22
+MimeType=x-scheme-handler/xcurrency;

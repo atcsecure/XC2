@@ -1,0 +1,4 @@
+compression = "xz"
+
+# ignore changes on refreshed translations
+extend-diff-ignore = "(^|/)src/qt/locale/[^/]+\.ts$"

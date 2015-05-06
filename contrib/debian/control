@@ -1,0 +1,59 @@
+Source: xcurrency
+Section: utils
+Priority: optional
+Maintainer: Dan Metcalf <dmetcalf@atcsecure.com>
+Uploaders: Xander Shepherd <n00bsys0p@xc-official.com>
+Build-Depends: debhelper,
+ devscripts,
+ bash-completion,
+ libfile-desktopentry-perl,
+ imagemagick,
+ libdb4.8++-dev,
+ libssl-dev,
+ pkg-config,
+ libminiupnpc-dev | libminiupnpc8-dev (>= 1.6-precise2),
+ libboost-system-dev (>= 1.54) | libboost-system1.54-dev,
+ libboost-filesystem-dev (>= 1.54) | libboost-filesystem1.54-dev,
+ libboost-program-options-dev (>= 1.54) | libboost-program-options1.54-dev,
+ libboost-thread-dev (>= 1.54) | libboost-thread1.54-dev,
+ libboost-test-dev (>= 1.54) | libboost-test1.54-dev,
+ libboost-date-time-dev (>= 1.54) | libboost-date-time1.54-dev,
+ libboost-dev (>= 1.54) | libboost1.54-dev,
+ qt4-qmake,
+ libqt4-dev,
+ libqrencode-dev
+Standards-Version: 3.9.2
+Homepage: https://www.xc-official.com/
+Vcs-Git: git://github.com/atcsecure/X11COIN.git
+Vcs-Browser: https://github.com/atcsecure/X11COIN.git
+
+Package: xcurrencyd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: peer-to-peer network based digital currency - daemon
+ XCurrency is a free open source peer-to-peer electronic cash system that
+ is completely decentralized, without the need for a central server or
+ trusted parties.  Users hold the crypto keys to their own money and
+ transact directly with each other, with the help of a P2P network to
+ check for double-spending.
+ .
+ Full transaction history is stored locally at each client.  This
+ will eventually take up quite a large amount of hard disk space.
+ .
+ This package provides XCurrencyd, a combined daemon and CLI tool to
+ interact with the daemon.
+
+Package: xcurrency-qt
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: peer-to-peer network based digital currency - Qt GUI
+ XCurrency is a free open source peer-to-peer electronic cash system that
+ is completely decentralized, without the need for a central server or
+ trusted parties.  Users hold the crypto keys to their own money and
+ transact directly with each other, with the help of a P2P network to
+ check for double-spending.
+ .
+ Full transaction history is stored locally at each client.  This
+ will eventually take up quite a large amount of hard disk space.
+ .
+ This package provides XCurrency-qt, a GUI for XCurrency based on Qt.

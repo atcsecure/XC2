@@ -1,0 +1,68 @@
+ Volume in drive C has no label.
+ Volume Serial Number is DC83-BE00
+
+ Directory of C:\Users\Administrator\Documents\GitHub\XC\src\qt\res\icons
+
+07/10/2014  04:45 PM    <DIR>          .
+07/10/2014  04:45 PM    <DIR>          ..
+05/02/2014  01:00 PM             6,148 .DS_Store
+05/02/2014  01:00 PM             1,279 add.png
+05/02/2014  01:00 PM             1,916 address-book.png
+05/13/2014  09:24 AM            93,835 bitcoin.icns
+05/02/2014  01:00 PM               946 clock1.png
+05/02/2014  01:00 PM               944 clock2.png
+05/02/2014  01:00 PM               946 clock3.png
+05/02/2014  01:00 PM               962 clock4.png
+05/02/2014  01:00 PM               956 clock5.png
+05/02/2014  01:00 PM             1,055 configure.png
+05/02/2014  01:00 PM               702 connect0_16.png
+05/02/2014  01:00 PM               612 connect1_16.png
+05/02/2014  01:00 PM               623 connect2_16.png
+05/02/2014  01:00 PM               625 connect3_16.png
+05/02/2014  01:00 PM               673 connect4_16.png
+05/02/2014  01:00 PM            46,521 debugwindow.png
+05/02/2014  01:00 PM             1,627 edit.png
+05/02/2014  01:00 PM               879 editcopy.png
+05/02/2014  01:00 PM             1,458 editpaste.png
+05/02/2014  01:00 PM             2,148 export.png
+05/02/2014  01:00 PM             1,741 filesave.png
+05/02/2014  01:00 PM             1,432 history.png
+05/02/2014  01:00 PM             1,727 key.png
+05/02/2014  01:00 PM         1,542,019 Ledger.png
+05/02/2014  01:00 PM             1,679 lock_closed.png
+05/02/2014  01:00 PM             1,644 lock_open.png
+05/02/2014  01:00 PM               839 mining.png
+05/02/2014  01:00 PM               466 mining_active.png
+05/02/2014  01:00 PM               483 mining_inactive.png
+05/02/2014  01:00 PM             1,013 notsynced.png
+05/02/2014  01:00 PM             5,226 overview.png
+05/08/2014  12:59 AM             3,072 photothumb.db
+07/10/2014  04:45 PM                 0 png
+05/02/2014  01:00 PM               237 qrcode.png
+05/02/2014  01:00 PM             2,163 quit.png
+05/02/2014  01:00 PM             1,437 receive.png
+05/02/2014  01:00 PM             1,224 remove.png
+05/02/2014  01:00 PM             1,487 send.png
+05/02/2014  01:00 PM               781 synced.png
+07/10/2014  03:45 PM    <DIR>          temp
+07/10/2014  03:46 PM    <DIR>          temp2
+05/02/2014  01:00 PM           110,080 Thumbs.db
+05/02/2014  01:00 PM               569 transaction0.png
+05/02/2014  01:00 PM               413 transaction2.png
+05/02/2014  01:00 PM             2,442 tx_inout.png
+05/02/2014  01:00 PM             2,152 tx_input.png
+05/02/2014  01:00 PM             3,287 tx_mined.png
+05/02/2014  01:00 PM             2,129 tx_output.png
+05/12/2014  10:12 PM            41,678 x11-logo2b.ico
+05/12/2014  09:09 AM            17,807 x11.png
+07/08/2014  09:10 AM            67,646 x11coin-128.png
+07/08/2014  09:10 AM             1,150 x11coin-16.png
+07/09/2014  04:00 PM               611 x11coin-32.png
+07/09/2014  04:00 PM               611 x11coin-64.png
+07/09/2014  04:00 PM             2,406 x11coin-96.png
+05/12/2014  10:12 PM            41,678 x11coin.icns
+07/10/2014  04:41 PM             1,150 X11Coin.ico
+07/09/2014  11:54 AM            17,807 x11coin.png
+07/08/2014  09:10 AM           370,070 XCurrency.ico
+              57 File(s)      2,417,211 bytes
+               4 Dir(s)   4,379,840,512 bytes free

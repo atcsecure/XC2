@@ -1,0 +1,72 @@
+xcurrency (0.9.2.47h-rc3-xc-1.0-trusty1) trusty; urgency=low
+
+  * Various UX updates and package naming changed to conform with debian standards
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Fri, 8 Aug 2014 18:35:42 +0100
+
+xcurrency (0.9.2.47h-rc3-xc-1.0-precise1) precise; urgency=low
+
+  * Various UX updates and package naming changed to conform with debian standards
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Fri, 8 Aug 2014 18:35:42 +0100
+
+xcurrency (0.9.2.47h-xc-1.0-trusty1) trusty; urgency=low
+
+  * Updated TOR HS seed nodes.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Wed, 6 Aug 2014 18:13:16 +0100
+
+xcurrency (0.9.2.47h-xc-1.0-precise1) precise; urgency=low
+
+  * Updated TOR HS seed nodes.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Wed, 6 Aug 2014 18:13:16 +0100
+
+xcurrency (0.9.2.47g-xc-1.0-trusty1) trusty; urgency=low
+
+  * XChat implemented and private send on mainnet.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Wed, 6 Aug 2014 18:13:16 +0100
+
+xcurrency (0.9.2.47g-xc-1.0-precise1) precise; urgency=low
+
+  * XChat implemented and private send on mainnet.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Wed, 6 Aug 2014 18:13:16 +0100
+
+xcurrency (0.9.2.40-xc-1.0-trusty1) trusty; urgency=low
+
+  * Initial push.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Tue, 12 Jul 2014 18:35:02 +0100
+
+xcurrency (0.9.2.40-xc-1.0-saucy1) saucy; urgency=low
+
+  * Initial push.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Tue, 12 Jul 2014 18:35:02 +0100
+
+x11coin (0.9.2.0-x11coin-1.0-trusty1) trusty; urgency=low
+
+  * Initial push.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Tue, 8 Jul 2014 17:39:24 +0100
+
+x11coin (0.9.2.0-x11coin-1.0-saucy1) saucy; urgency=low
+
+  * Initial push.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Tue, 8 Jul 2014 17:39:24 +0100
+
+x11coin (0.9.1.51-x11coin-1.0-trusty1) trusty; urgency=low
+
+  * Initial push.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Mon, 16 Jun 2014 12:17:10 +0100
+
+x11coin (0.9.1.51-x11coin-1.0-saucy1) saucy; urgency=low
+
+  * Initial push.
+
+ -- Xander Shepherd <n00bsys0p@xc-official.com>  Mon, 16 Jun 2014 12:17:10 +0100
+

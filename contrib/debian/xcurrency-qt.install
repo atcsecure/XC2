@@ -1,0 +1,5 @@
+/XCurrency-qt 		usr/bin
+debian/*.png		usr/share/pixmaps
+debian/*.xpm		usr/share/pixmaps
+debian/*.desktop	usr/share/applications
+#debian/*.protocol usr/share/kde4/services/
