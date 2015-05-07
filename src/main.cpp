@@ -3586,7 +3586,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 LOCK(cs_vNodes);
                 BOOST_FOREACH(CNode* pnode, vNodes)
                 {
-                    pnode->PushMessage("msgack", hash);
+				    // TODO temporary disable msgack
+                    // pnode->PushMessage("msgack", hash);
                 }
             }
         }
