@@ -101,6 +101,12 @@ public:
      * called for change distmix status (for gui)
      */
     boost::signals2::signal<void (const std::string & status)> NotifyDistmixPaymentStatusChanged;
+
+    /**
+     * @brief NotifyXBridgeExchangeWalletsReceived
+     */
+    typedef std::pair<std::string, std::string> StringPair;
+    boost::signals2::signal<void (const std::vector<StringPair> & status)> NotifyXBridgeExchangeWalletsReceived;
 };
 
 extern CClientUIInterface uiInterface;

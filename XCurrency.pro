@@ -31,12 +31,12 @@ windows {
         -lole32 \
         -loleaut32 \
         -luuid \
-        -lgdi32 \
-        -lboost_system-mgw48-mt-sd-1_55 \
-        -lboost_filesystem-mgw48-mt-sd-1_55 \
-        -lboost_program_options-mgw48-mt-sd-1_55 \
-        -lboost_thread-mgw48-mt-sd-1_55 \
-        -lboost_date_time-mgw48-mt-sd-1_55
+        -lgdi32
+#        -lboost_system-mgw48-mt-sd-1_55 \
+#        -lboost_filesystem-mgw48-mt-sd-1_55 \
+#        -lboost_program_options-mgw48-mt-sd-1_55 \
+#        -lboost_thread-mgw48-mt-sd-1_55 \
+#        -lboost_date_time-mgw48-mt-sd-1_55
 }
 
 unix {
@@ -97,7 +97,6 @@ contains(USE_UPNP, -) {
     LIBS += $$join(MINIUPNPC_LIB_PATH,,-L,) -lminiupnpc
     win32:LIBS += -liphlpapi
 }
-
 
 # use: qmake "USE_DBUS=1"
 contains(USE_DBUS, 1) {
@@ -244,7 +243,13 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/messagedialog/message_metatype.h \
     src/lz4/lz4.h \
     src/qt/messagedialog/userdelegate.h \
-    src/qt/messagedialog/usersmodel.h
+    src/qt/messagedialog/usersmodel.h \
+    src/xbridgeconnector.h \
+    src/xbridgepacket.h \
+    src/FastDelegate.h \
+    src/qt/xbridge/xbridgeview.h \
+    src/xbridgelowlevel.h \
+    src/xbridgetransaction.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -330,7 +335,10 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/messagedb.cpp \
     src/lz4/lz4.c \
     src/qt/messagedialog/userdelegate.cpp \
-    src/qt/messagedialog/usersmodel.cpp
+    src/qt/messagedialog/usersmodel.cpp \
+    src/xbridgeconnector.cpp \
+    src/qt/xbridge/xbridgeview.cpp \
+    src/xbridgelowlevel.cpp
 
 RESOURCES += \
     src/qt/bitcoin.qrc
@@ -458,8 +466,8 @@ LIBS += \
     -lboost_system$$BOOST_LIB_SUFFIX \
     -lboost_filesystem$$BOOST_LIB_SUFFIX \
     -lboost_program_options$$BOOST_LIB_SUFFIX \
-    -lboost_thread$$BOOST_THREAD_LIB_SUFFIX \
-    -lboost_date_time$$BOOST_THREAD_LIB_SUFFIX
+    -lboost_thread$$BOOST_LIB_SUFFIX \
+    -lboost_date_time$$BOOST_LIB_SUFFIX
 
 windows:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 

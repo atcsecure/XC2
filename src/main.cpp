@@ -16,6 +16,7 @@
 #include "multisigmixer.h"
 #include "bitcoinrpc.h"
 #include "message.h"
+#include "xbridgeconnector.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -51,11 +52,11 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20);
-static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
+static CBigNum bnProofOfWorkLimit(~uint256() >> 20);
+static CBigNum bnProofOfStakeLimit(~uint256() >> 20);
 
-static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
-static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
+static CBigNum bnProofOfWorkLimitTestNet(~uint256() >> 20);
+static CBigNum bnProofOfStakeLimitTestNet(~uint256() >> 20);
 
 unsigned int nStakeMinAge = 60 * 60 * 8;	// minimum age for coin age: 3h
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: -1
@@ -2128,8 +2129,15 @@ bool CBlock::AcceptBlock()
 
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, vtx)
+    {
         if (!tx.IsFinal(nHeight, GetBlockTime()))
+        {
             return DoS(10, error("AcceptBlock() : contains a non-final transaction"));
+        }
+
+        // send to xbridge
+        xbridge().transactionReceived(tx.GetHash());
+    }
 
     // Check that the block chain matches the known block chain up to a checkpoint
     if (!Checkpoints::CheckHardened(nHeight, hash))
@@ -3013,7 +3021,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
              (nAskedForBlocks < 1 || vNodes.size() <= 1))
         {
             nAskedForBlocks++;
-            pfrom->PushGetBlocks(pindexBest, uint256(0));
+            pfrom->PushGetBlocks(pindexBest, uint256());
         }
 
         // Relay alerts
@@ -3122,7 +3130,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->fDisconnect = true;
     }
 
-
     else if (strCommand == "inv")
     {
         vector<CInv> vInv;
@@ -3162,7 +3169,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 // In case we are on a very long side-chain, it is possible that we already have
                 // the last block in an inv bundle sent in response to getblocks. Try to detect
                 // this situation and push another getblocks to continue.
-                pfrom->PushGetBlocks(mapBlockIndex[inv.hash], uint256(0));
+                pfrom->PushGetBlocks(mapBlockIndex[inv.hash], uint256());
                 if (fDebug)
                     printf("force request: %s\n", inv.ToString().c_str());
             }
@@ -3387,7 +3394,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
 
             BOOST_FOREACH(uint256 hash, vEraseQueue)
+            {
                 EraseOrphanTx(hash);
+            }
         }
         else if (fMissingInputs)
         {
@@ -3396,9 +3405,20 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
             unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
             if (nEvicted > 0)
+            {
                 printf("mapOrphan overflow, removed %u tx\n", nEvicted);
+            }
         }
-        if (tx.nDoS) pfrom->Misbehaving(tx.nDoS);
+
+        if (tx.nDoS)
+        {
+            pfrom->Misbehaving(tx.nDoS);
+        }
+        else
+        {
+            // send transaction hash to xbridge
+            xbridge().transactionReceived(tx.GetHash());
+        }
     }
 
 

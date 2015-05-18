@@ -28,6 +28,7 @@
 #include "wallet.h"
 #include "bitcoinrpc.h"
 #include "messagedialog/messagedialog.h"
+#include "xbridge/xbridgeview.h"
 #include "util/verify.h"
 
 #ifdef Q_OS_MAC
@@ -132,6 +133,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // create messages dialog
     messagesPage = new MessagesDialog(this);
 
+    // xbridge view
+    xbridgeView = new XBridgeView(this);
+
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
     centralWidget->addWidget(transactionsPage);
@@ -139,6 +143,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
     centralWidget->addWidget(messagesPage);
+    centralWidget->addWidget(xbridgeView);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -281,18 +286,25 @@ void BitcoinGUI::createActions()
     messagesAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(messagesAction);
 
-    VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
-    VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(gotoOverviewPage())));
-    VERIFY(connect(sendCoinsAction,    SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
-    VERIFY(connect(sendCoinsAction,    SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage())));
-    VERIFY(connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
-    VERIFY(connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage())));
-    VERIFY(connect(historyAction,      SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
-    VERIFY(connect(historyAction,      SIGNAL(triggered()), this, SLOT(gotoHistoryPage())));
-    VERIFY(connect(addressBookAction,  SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
-    VERIFY(connect(addressBookAction,  SIGNAL(triggered()), this, SLOT(gotoAddressBookPage())));
-    VERIFY(connect(messagesAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
-    VERIFY(connect(messagesAction,     SIGNAL(triggered()), this, SLOT(gotoMessagesPage())));
+    openXbridgeViewAction = new QAction(QIcon(":/icons/address-book"), tr("X&Bridge"), this);
+    openXbridgeViewAction->setToolTip(tr("XBridge view"));
+    openXbridgeViewAction->setCheckable(true);
+    openXbridgeViewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    tabGroup->addAction(openXbridgeViewAction);
+
+    VERIFY(connect(overviewAction,        SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
+    VERIFY(connect(overviewAction,        SIGNAL(triggered()), this, SLOT(gotoOverviewPage())));
+    VERIFY(connect(sendCoinsAction,       SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
+    VERIFY(connect(sendCoinsAction,       SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage())));
+    VERIFY(connect(receiveCoinsAction,    SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
+    VERIFY(connect(receiveCoinsAction,    SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage())));
+    VERIFY(connect(historyAction,         SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
+    VERIFY(connect(historyAction,         SIGNAL(triggered()), this, SLOT(gotoHistoryPage())));
+    VERIFY(connect(addressBookAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
+    VERIFY(connect(addressBookAction,     SIGNAL(triggered()), this, SLOT(gotoAddressBookPage())));
+    VERIFY(connect(messagesAction,        SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
+    VERIFY(connect(messagesAction,        SIGNAL(triggered()), this, SLOT(gotoMessagesPage())));
+    VERIFY(connect(openXbridgeViewAction, SIGNAL(triggered()), this, SLOT(gotoXBridgeView())));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -399,6 +411,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
     toolbar->addAction(messagesAction);
+    toolbar->addAction(openXbridgeViewAction);
 
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -885,7 +898,18 @@ void BitcoinGUI::gotoMessagesPage(const QString & addr)
     centralWidget->setCurrentWidget(messagesPage);
 
     exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
 
+//*****************************************************************************
+//*****************************************************************************
+void BitcoinGUI::gotoXBridgeView()
+{
+    openXbridgeViewAction->setChecked(true);
+
+    centralWidget->setCurrentWidget(xbridgeView);
+
+    exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 

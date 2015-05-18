@@ -84,6 +84,8 @@ private slots:
     void onCopyLabelAction();
     /** Copy public key to clipboard for selected address entry */
     void onCopyPublicKeyAction();
+    /** Copy XBridge address to clipboard */
+    void onCopyXBridgeAddress();
     /** Edit currently selected address entry */
     void onEditAction();
 
