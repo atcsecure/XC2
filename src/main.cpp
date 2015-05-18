@@ -3566,7 +3566,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
     // messages
     else if (strCommand == "message")
-    {  /*
+    {
         // received message
         Message msg;
         vRecv >> msg;
@@ -3588,10 +3588,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 // relay, if message not for me
                 msg.broadcast();
             }
-        } */
+        }
     }
     else if (strCommand == "msgack")
-    { /*
+    {
         // message delivered
         uint256 hash;
         vRecv >> hash;
@@ -3606,11 +3606,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 LOCK(cs_vNodes);
                 BOOST_FOREACH(CNode* pnode, vNodes)
                 {
-				    // TODO temporary disable msgack
-                    // pnode->PushMessage("msgack", hash);
+                    pnode->PushMessage("msgack", hash);
                 }
             }
-        } */
+        }
     }
 
     // LET'S WRITE A MIXER!
