@@ -494,10 +494,13 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         }
     }
 
+
     // create tx2, inputs
-    CTransaction tx2;
-    CTxIn in(COutPoint(uint256(tx1->GetHash().GetHex()), ));
-    tx2.vin.push_back(in);
+//    time_t t = time();
+//    CTransaction tx2;
+//    tx2.nLockTime;
+//    CTxIn in(COutPoint(uint256(tx1->GetHash().GetHex()), ));
+//    tx2.vin.push_back(in);
 
     return false;
 }
