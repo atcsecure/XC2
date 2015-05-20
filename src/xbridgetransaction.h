@@ -14,17 +14,20 @@
 //******************************************************************************
 struct XBridgeTransaction
 {
-    uint256 id;
+    uint256                    id;
+
     std::vector<unsigned char> from;
-    std::string fromCurrency;
-    boost::uint64_t fromAmount;
+    std::string                fromCurrency;
+    boost::uint64_t            fromAmount;
     std::vector<unsigned char> to;
-    std::string toCurrency;
-    boost::uint64_t toAmount;
+    std::string                toCurrency;
+    boost::uint64_t            toAmount;
+
+    std::string                rawTx;
+
+    XBridgePacketPtr           packet;
 
     // TODO add transaction state for gui
-
-    XBridgePacketPtr packet;
 };
 
 typedef boost::shared_ptr<XBridgeTransaction> XBridgeTransactionPtr;

@@ -43,7 +43,8 @@ private:
     bool processExchangeWallets(XBridgePacketPtr packet);
 
     bool processTransactionHold(XBridgePacketPtr packet);
-    bool processTransactionPay(XBridgePacketPtr packet);
+    bool processTransactionCreate(XBridgePacketPtr packet);
+    bool processTransactionSign(XBridgePacketPtr packet);
     bool processTransactionCommit(XBridgePacketPtr packet);
     bool processTransactionFinished(XBridgePacketPtr packet);
     bool processTransactionDropped(XBridgePacketPtr packet);
