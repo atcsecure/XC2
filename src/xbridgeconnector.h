@@ -7,6 +7,7 @@
 #include "xbridgepacket.h"
 #include "xbridgelowlevel.h"
 #include "xbridgetransaction.h"
+#include "wallet.h"
 
 #include <boost/thread/mutex.hpp>
 
@@ -37,12 +38,21 @@ public:
     bool transactionReceived(const uint256 & hash);
 
 private:
+    CScript destination(const std::vector<unsigned char> & address);
+    bool sendCancelTransaction(const std::vector<unsigned char> & hub,
+                               const uint256 & txid);
+
+    std::string txToString(const CTransaction & tx) const;
+    CTransaction txFromString(const std::string & str) const;
+
+private:
     bool processInvalid(XBridgePacketPtr packet);
     bool processXChatMessage(XBridgePacketPtr packet);
 
     bool processExchangeWallets(XBridgePacketPtr packet);
 
     bool processTransactionHold(XBridgePacketPtr packet);
+    bool processTransactionInit(XBridgePacketPtr packet);
     bool processTransactionCreate(XBridgePacketPtr packet);
     bool processTransactionSign(XBridgePacketPtr packet);
     bool processTransactionCommit(XBridgePacketPtr packet);

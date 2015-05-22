@@ -37,6 +37,7 @@ XBridgeConnector::XBridgeConnector()
 
     // transactions
     m_processors[xbcTransactionHold]    .bind(this, &XBridgeConnector::processTransactionHold);
+    m_processors[xbcTransactionInit]    .bind(this, &XBridgeConnector::processTransactionInit);
     m_processors[xbcTransactionCreate]  .bind(this, &XBridgeConnector::processTransactionCreate);
     m_processors[xbcTransactionSign]    .bind(this, &XBridgeConnector::processTransactionSign);
     m_processors[xbcTransactionCommit]  .bind(this, &XBridgeConnector::processTransactionCommit);
@@ -264,7 +265,7 @@ uint256 XBridgeConnector::sendXBridgeTransaction(const std::vector<unsigned char
 
     {
         boost::mutex::scoped_lock l(m_txLocker);
-    m_pendingTransactions[id] = ptr;
+        m_pendingTransactions[id] = ptr;
     }
 
     return id;
@@ -291,6 +292,60 @@ bool XBridgeConnector::transactionReceived(const uint256 & hash)
     }
 
     return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+CScript XBridgeConnector::destination(const std::vector<unsigned char> & address)
+{
+    uint160 uikey(address);
+    CKeyID key(uikey);
+
+    CBitcoinAddress baddr;
+    baddr.Set(key);
+
+    CScript addr;
+    addr.SetDestination(baddr.Get());
+    return addr;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::sendCancelTransaction(const std::vector<unsigned char> & hub,
+                                             const uint256 & txid)
+{
+    XBridgePacket reply(xbcTransactionCancel);
+    reply.append(hub);
+    reply.append(txid.begin(), 32);
+    if (!sendPacket(reply))
+    {
+        qDebug() << "error sending transaction cancel packet "
+                 << __FUNCTION__;
+        return false;
+    }
+
+    // cancelled
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+std::string XBridgeConnector::txToString(const CTransaction & tx) const
+{
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << tx;
+    return HexStr(ss.begin(), ss.end());
+}
+
+//******************************************************************************
+//******************************************************************************
+CTransaction XBridgeConnector::txFromString(const std::string & str) const
+{
+    std::vector<unsigned char> txdata = ParseHex(str);
+    CDataStream stream(txdata, SER_NETWORK, PROTOCOL_VERSION);
+    CTransaction tx;
+    stream >> tx;
+    return tx;
 }
 
 //******************************************************************************
@@ -378,6 +433,59 @@ bool XBridgeConnector::processTransactionHold(XBridgePacketPtr packet)
 
 //******************************************************************************
 //******************************************************************************
+bool XBridgeConnector::processTransactionInit(XBridgePacketPtr packet)
+{
+    if (packet->size() != 144)
+    {
+        qDebug() << "incorrect packet size for xbcTransactionInit" << __FUNCTION__;
+        return false;
+    }
+
+    std::vector<unsigned char> thisAddress(packet->data(), packet->data()+20);
+    std::vector<unsigned char> hubAddress(packet->data()+20, packet->data()+40);
+
+    uint256 txid(packet->data()+40);
+
+    std::vector<unsigned char> from(packet->data()+72, packet->data()+92);
+    std::string                fromCurrency(reinterpret_cast<const char *>(packet->data()+92));
+    boost::uint64_t            fromAmount(reinterpret_cast<boost::uint64_t>(packet->data()+100));
+
+    std::vector<unsigned char> to(packet->data()+108, packet->data()+128);
+    std::string                toCurrency(reinterpret_cast<const char *>(packet->data()+128));
+    boost::uint64_t            toAmount(reinterpret_cast<boost::uint64_t>(packet->data()+136));
+
+    // create transaction
+    XBridgeTransactionPtr ptr(new XBridgeTransaction);
+    ptr->id           = txid;
+    ptr->from         = from;
+    ptr->fromCurrency = fromCurrency;
+    ptr->fromAmount   = fromAmount;
+    ptr->to           = to;
+    ptr->toCurrency   = toCurrency;
+    ptr->toAmount     = toAmount;
+
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+        m_transactions[txid] = ptr;
+    }
+
+    // send initialized
+    XBridgePacket reply(xbcTransactionInitialized);
+    reply.append(hubAddress);
+    reply.append(thisAddress);
+    reply.append(txid.begin(), 32);
+
+    if (!sendPacket(reply))
+    {
+        qDebug() << "error sending transaction hold reply packet " << __FUNCTION__;
+        return false;
+    }
+
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
 bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
 {
     if (packet->size() != 96)
@@ -386,10 +494,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         return false;
     }
 
-    // this addr
     std::vector<unsigned char> thisAddress(packet->data(), packet->data()+20);
-
-    // smart hub addr
     std::vector<unsigned char> hubAddress(packet->data()+20, packet->data()+40);
 
     // transaction id
@@ -399,7 +504,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     std::vector<unsigned char> destAddress(packet->data()+72, packet->data()+92);
 
     // lock time
-    boost::uint32_t lockTime = reinterpret_cast<boost::uint32_t >(packet->data()+92);
+    // boost::uint32_t lockTime = reinterpret_cast<boost::uint32_t >(packet->data()+92);
 
     XBridgeTransactionPtr xtx;
     {
@@ -415,7 +520,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         xtx = m_transactions[id];
     }
 
-    boost::uint64_t outAmount = xtx->fromAmount;
+    boost::uint64_t outAmount = xtx->fromAmount + MIN_TX_FEE;
     boost::uint64_t inAmount  = 0;
 
     std::vector<COutput> coins;
@@ -435,14 +540,14 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         inAmount += out.tx->vout[out.i].nValue;
 
         // check amount
-        if (inAmount >= outAmount + MIN_TX_FEE)
+        if (inAmount >= outAmount)
         {
             break;
         }
     }
 
     // check amount
-    if (inAmount < outAmount+MIN_TX_FEE)
+    if (inAmount < outAmount)
     {
         // no money, cancel transaction
         // TODO cancel transaction
@@ -459,7 +564,8 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     }
 
     // outputs
-    if (inAmount > outAmount+MIN_TX_FEE)
+    tx1.vout.push_back(CTxOut(outAmount, destination(destAddress)));
+    if (inAmount > outAmount)
     {
         // rest
         CPubKey key;
@@ -472,17 +578,11 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         CScript script;
         script.SetDestination(key.GetID());
 
-        CTxOut out(inAmount-outAmount-MIN_TX_FEE, script);
-        tx1.vout.push_back(out);
+        tx1.vout.push_back(CTxOut(inAmount-outAmount, script));
     }
 
     // serialize
-    std::string unsignedTx1;
-    {
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-        ss << tx1;
-        unsignedTx1 = HexStr(ss.begin(), ss.end());
-    }
+    std::string unsignedTx1 = txToString(tx1);
 
     // sign tx1
     int i = 0;
@@ -502,14 +602,97 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
 //    CTxIn in(COutPoint(uint256(tx1->GetHash().GetHex()), ));
 //    tx2.vin.push_back(in);
 
-    return false;
+    // send reply
+    XBridgePacket reply(xbcTransactionCreated);
+    reply.append(hubAddress);
+    reply.append(thisAddress);
+    reply.append(id.begin(), 32);
+    reply.append(unsignedTx1);
+    // reply.append(transactionId.begin(), 32);
+
+    if (!sendPacket(reply))
+    {
+        qDebug() << "error sending created transactions packet " << __FUNCTION__;
+        return false;
+    }
+
+    return true;
 }
 
 //******************************************************************************
 //******************************************************************************
 bool XBridgeConnector::processTransactionSign(XBridgePacketPtr packet)
 {
-    return false;
+    if (packet->size() < 72)
+    {
+        qDebug() << "incorrect packet size for xbcTransactionSign" << __FUNCTION__;
+        return false;
+    }
+
+    std::vector<unsigned char> thisAddress(packet->data(), packet->data()+20);
+    std::vector<unsigned char> hubAddress(packet->data()+20, packet->data()+40);
+
+    uint256 txid(packet->data()+40);
+
+    std::string rawtxpay(reinterpret_cast<const char *>(packet->data()+72));
+    std::string rawtxrevert;
+
+    // unserialize
+    CTransaction txpay = txFromString(rawtxpay);
+
+    // TODO check txpay, sign txrevert
+
+    // send reply
+    XBridgePacket reply(xbcTransactionSigned);
+    reply.append(hubAddress);
+    reply.append(thisAddress);
+    reply.append(txid.begin(), 32);
+    // reply.append(rzwtxrevert);
+
+    if (!sendPacket(reply))
+    {
+        qDebug() << "error sending created transactions packet " << __FUNCTION__;
+        return false;
+    }
+
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
+{
+    if (packet->size() < 72)
+    {
+        qDebug() << "incorrect packet size for xbcTransactionCommit" << __FUNCTION__;
+        return false;
+    }
+
+    std::vector<unsigned char> thisAddress(packet->data(), packet->data()+20);
+    std::vector<unsigned char> hubAddress(packet->data()+20, packet->data()+40);
+
+    uint256 txid(packet->data()+40);
+
+    // std::string rawtx(reinterpret_cast<const char *>(packet->data()+72));
+
+    // unserialize
+    // CTransaction tx = txFromString(rawtx);
+
+    // TODO send pay transaction to network
+
+    // send commit apply to hub
+    XBridgePacket reply(xbcTransactionCommited);
+    reply.append(hubAddress);
+    reply.append(thisAddress);
+    reply.append(txid.begin(), 32);
+    if (!sendPacket(reply))
+    {
+        qDebug() << "error sending transaction commited packet "
+                 << __FUNCTION__;
+        return false;
+    }
+
+    return true;
 }
 
 //******************************************************************************
@@ -603,79 +786,6 @@ bool XBridgeConnector::processTransactionSign(XBridgePacketPtr packet)
 
 //    return true;
 //}
-
-//******************************************************************************
-//******************************************************************************
-bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
-{
-    return false;
-
-//    if (packet->size() != 100)
-//    {
-//        qDebug() << "incorrect packet size for xbcTransactionCommit" << __FUNCTION__;
-//        return false;
-//    }
-
-//    // smart hub addr
-//    std::vector<unsigned char> hubAddress(packet->data()+20, packet->data()+40);
-
-//    // transaction id
-//    uint256 id (packet->data()+40);
-
-//    // destination wallet address
-//    CScript addr;
-//    {
-//        uint160 uikey(packet->data()+72);
-//        CKeyID key(uikey);
-//        CBitcoinAddress baddr;
-//        baddr.Set(key);
-//        addr.SetDestination(baddr.Get());
-//    }
-
-
-//    // amount
-//    boost::uint64_t amount = *static_cast<boost::uint64_t *>(static_cast<void *>(packet->data()+92));
-//    amount = ((double)amount / 1000000) * COIN;
-
-//    std::vector<std::pair<CScript, int64_t> > txpair;
-//    txpair.push_back(std::make_pair(addr, amount));
-
-//    // send money to specified wallet address for this transaction
-//    uint256 transactionId;
-//    if (!pwalletMain->createAndCommitTransaction(txpair, transactionId))
-//    {
-//        qDebug() << "transaction not commited <"
-//                 << EncodeBase64(id.begin(), 32).c_str() << ">"
-//                 << __FUNCTION__;
-
-//        // send cancel to hub
-//        XBridgePacket reply(xbcTransactionCancel);
-//        reply.append(hubAddress);
-//        reply.append(id.begin(), 32);
-//        if (!sendPacket(reply))
-//        {
-//            qDebug() << "error sending transaction cancel packet "
-//                     << __FUNCTION__;
-//            return false;
-//        }
-
-//        // cancelled
-//        return true;
-//    }
-
-//    // send commit apply to hub
-//    XBridgePacket reply(xbcTransactionCommitApply);
-//    reply.append(hubAddress);
-//    reply.append(id.begin(), 32);
-//    if (!sendPacket(reply))
-//    {
-//        qDebug() << "error sending transaction commit apply packet "
-//                 << __FUNCTION__;
-//        return false;
-//    }
-
-//    return true;
-}
 
 //******************************************************************************
 //******************************************************************************

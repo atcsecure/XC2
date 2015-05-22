@@ -76,6 +76,24 @@ enum XBridgeCommand
     //    uint256 hub transaction id
     xbcTransactionHoldApply,
     //
+    // xbcTransactionInit
+    //    uint160 client address
+    //    uint160 hub address
+    //    uint256 hub transaction id
+    //    uint160 source address
+    //    8 bytes source currency
+    //    uint64 source amount
+    //    uint160 destination address
+    //    8 bytes destination currency
+    //    uint64 destination amount
+    xbcTransactionInit,
+    //
+    // xbcTransactionInitialized
+    //    uint160 hub address
+    //    uint160 client address
+    //    uint256 hub transaction id
+    xbcTransactionInitialized,
+    //
     // xbcTransactionCreate
     //    uint160 client address
     //    uint160 hub address
@@ -93,16 +111,21 @@ enum XBridgeCommand
     //    uint160 client address
     //    uint160 hub address
     //    uint256 hub transaction id
+    //    string  raw transaction
     xbcTransactionSign,
     //
     // xbcTransactionSigned
     //    uint160 hub address
     //    uint160 client address
     //    uint256 hub transaction id
-    //    string  raw transaction
+    //    string  raw transaction (signed)
     xbcTransactionSigned,
     //
     // xbcTransactionCommit
+    //    uint160 hub address
+    //    uint160 client address
+    //    uint256 hub transaction id
+    //    string  raw transaction (signed)
     xbcTransactionCommit,
     //
     // xbcTransactionCommited
@@ -170,10 +193,12 @@ public:
         // return crcField();
     }
 
-    XBridgeCommand command() const      { return static_cast<XBridgeCommand>(commandField()); }
+    XBridgeCommand command() const       { return static_cast<XBridgeCommand>(commandField()); }
 
-    void    alloc()             { m_body.resize(headerSize + size()); }
+    void    alloc()                      { m_body.resize(headerSize + size()); }
 
+    const std::vector<unsigned char> & body() const
+                                         { return m_body; }
     unsigned char  * header()            { return &m_body[0]; }
     unsigned char  * data()              { return &m_body[headerSize]; }
 
@@ -263,8 +288,9 @@ public:
 
     void append(const std::string & data)
     {
-        m_body.reserve(m_body.size() + data.size());
+        m_body.reserve(m_body.size() + data.size()+1);
         std::copy(data.begin(), data.end(), std::back_inserter(m_body));
+        m_body.push_back(0);
         sizeField() = m_body.size() - headerSize;
     }
 
