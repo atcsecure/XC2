@@ -520,7 +520,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         xtx = m_transactions[id];
     }
 
-    boost::uint64_t outAmount = xtx->fromAmount + MIN_TX_FEE;
+    boost::uint64_t outAmount = xtx->fromAmount+MIN_TX_FEE;
     boost::uint64_t inAmount  = 0;
 
     std::vector<COutput> coins;
@@ -564,7 +564,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     }
 
     // outputs
-    tx1.vout.push_back(CTxOut(outAmount, destination(destAddress)));
+    tx1.vout.push_back(CTxOut(outAmount-MIN_TX_FEE, destination(destAddress)));
     if (inAmount > outAmount)
     {
         // rest
