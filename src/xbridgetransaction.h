@@ -3,6 +3,7 @@
 
 #include "xbridgepacket.h"
 #include "uint256.h"
+#include "main.h"
 
 #include <vector>
 #include <string>
@@ -23,7 +24,8 @@ struct XBridgeTransaction
     std::string                toCurrency;
     boost::uint64_t            toAmount;
 
-    std::string                rawTx;
+    CTransaction               payTx;
+    CTransaction               revTx;
 
     XBridgePacketPtr           packet;
 
