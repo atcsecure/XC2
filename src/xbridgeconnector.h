@@ -34,6 +34,7 @@ public:
                                    const std::vector<unsigned char> & to,
                                    const std::string & toCurrency,
                                    const boost::uint64_t toAmount);
+    bool revertXBridgeTransaction(const uint256 & id);
 
     bool transactionReceived(const uint256 & hash);
 
@@ -57,6 +58,7 @@ private:
     bool processTransactionSign(XBridgePacketPtr packet);
     bool processTransactionCommit(XBridgePacketPtr packet);
     bool processTransactionFinished(XBridgePacketPtr packet);
+    bool processTransactionCancel(XBridgePacketPtr packet);
     bool processTransactionDropped(XBridgePacketPtr packet);
 
 private:
