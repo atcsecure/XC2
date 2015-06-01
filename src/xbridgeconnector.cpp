@@ -626,6 +626,13 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         tx1.vout.push_back(CTxOut(inAmount-outAmount, script));
     }
 
+    // TODO lock time
+//    {
+//        time_t local = 0;
+//        time(&local);
+//        tx1.nLockTime = local + 5*60;
+//    }
+
     // serialize
     std::string unsignedTx1 = txToString(tx1);
 
@@ -665,9 +672,12 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         tx2.vout.push_back(CTxOut(outAmount-2*MIN_TX_FEE, script));
     }
 
-    // lock time
-    //    time_t t = time();
-    //    tx2.nLockTime;
+    // TODO lock time for tx2
+//    {
+//        time_t local = 0;
+//        time(&local);
+//        tx2.nLockTime = local + 5;
+//    }
 
     // serialize
     std::string unsignedTx2 = txToString(tx2);
@@ -813,7 +823,7 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
     reply.append(hubAddress);
     reply.append(thisAddress);
     reply.append(txid.begin(), 32);
-    reply.append(((CTransaction *)&xtx)->GetHash().begin(), 32);
+    reply.append((static_cast<CTransaction *>(&xtx->payTx))->GetHash().begin(), 32);
     if (!sendPacket(reply))
     {
         qDebug() << "error sending transaction commited packet "
@@ -872,10 +882,10 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
     }
 
     // TODO test revert transaction
-//    if (xtx->id != uint256())
-//    {
-//        revertXBridgeTransaction(xtx->id);
-//    }
+    if (xtx->id != uint256())
+    {
+        revertXBridgeTransaction(xtx->id);
+    }
 
     // TODO update transaction state for gui
     return true;
