@@ -57,6 +57,7 @@ private:
     bool processTransactionCreate(XBridgePacketPtr packet);
     bool processTransactionSign(XBridgePacketPtr packet);
     bool processTransactionCommit(XBridgePacketPtr packet);
+    // bool processTransactionConfirm(XBridgePacketPtr packet);
     bool processTransactionFinished(XBridgePacketPtr packet);
     bool processTransactionCancel(XBridgePacketPtr packet);
     bool processTransactionDropped(XBridgePacketPtr packet);

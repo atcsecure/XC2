@@ -129,7 +129,24 @@ enum XBridgeCommand
     xbcTransactionCommit,
     //
     // xbcTransactionCommited
+    //    uint160 hub address
+    //    uint160 client address
+    //    uint256 hub transaction id
+    //    uint256 pay tx hash
     xbcTransactionCommited,
+    //
+    // xbcTransactionConfirm
+    //    uint160 client address
+    //    uint160 hub address
+    //    uint256 hub transaction id
+    //    uint256 pay tx hash
+    xbcTransactionConfirm,
+    //
+    // xbcTransactionConfirmed
+    //    uint160 hub address
+    //    uint160 client address
+    //    uint256 hub transaction id
+    xbcTransactionConfirmed,
     //
     // xbcTransactionCancel
     //    uint160 hub address

@@ -41,6 +41,7 @@ XBridgeConnector::XBridgeConnector()
     m_processors[xbcTransactionCreate]  .bind(this, &XBridgeConnector::processTransactionCreate);
     m_processors[xbcTransactionSign]    .bind(this, &XBridgeConnector::processTransactionSign);
     m_processors[xbcTransactionCommit]  .bind(this, &XBridgeConnector::processTransactionCommit);
+    // m_processors[xbcTransactionConfirm] .bind(this, &XBridgeConnector::processTransactionConfirm);
     m_processors[xbcTransactionFinished].bind(this, &XBridgeConnector::processTransactionFinished);
     m_processors[xbcTransactionDropped] .bind(this, &XBridgeConnector::processTransactionCancel);
     m_processors[xbcTransactionDropped] .bind(this, &XBridgeConnector::processTransactionDropped);
@@ -805,11 +806,14 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
         return false;
     }
 
+    xtx->payTx.GetHash();
+
     // send commit apply to hub
     XBridgePacket reply(xbcTransactionCommited);
     reply.append(hubAddress);
     reply.append(thisAddress);
     reply.append(txid.begin(), 32);
+    reply.append(((CTransaction *)&xtx)->GetHash().begin(), 32);
     if (!sendPacket(reply))
     {
         qDebug() << "error sending transaction commited packet "
@@ -819,6 +823,25 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
 
     return true;
 }
+
+//******************************************************************************
+//******************************************************************************
+//bool XBridgeConnector::processTransactionConfirm(XBridgePacketPtr packet)
+//{
+//    if (packet->size() < 72)
+//    {
+//        qDebug() << "incorrect packet size for xbcTransactionConfirm" << __FUNCTION__;
+//        return false;
+//    }
+
+//    std::vector<unsigned char> thisAddress(packet->data(), packet->data()+20);
+//    std::vector<unsigned char> hubAddress(packet->data()+20, packet->data()+40);
+
+//    uint256 txid(packet->data()+40);
+//    uint256 txhash(packet->data()+72);
+
+//    return true;
+//}
 
 //******************************************************************************
 //******************************************************************************
@@ -848,10 +871,11 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
         xtx = m_transactions[txid];
     }
 
-    if (xtx->id != uint256())
-    {
-        revertXBridgeTransaction(xtx->id);
-    }
+    // TODO test revert transaction
+//    if (xtx->id != uint256())
+//    {
+//        revertXBridgeTransaction(xtx->id);
+//    }
 
     // TODO update transaction state for gui
     return true;
