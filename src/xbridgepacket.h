@@ -151,8 +151,12 @@ enum XBridgeCommand
     // xbcTransactionCancel
     //    uint160 hub address
     //    uint256 hub transaction id
-    //
     xbcTransactionCancel,
+    //
+    // xbcTransactionRollback
+    //    uint160 hub address
+    //    uint256 hub transaction id
+    xbcTransactionRollback,
     //
     // xbcTransactionFinished
     //    uint160 client address

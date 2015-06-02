@@ -41,6 +41,7 @@ XBridgeConnector::XBridgeConnector()
     m_processors[xbcTransactionCreate]  .bind(this, &XBridgeConnector::processTransactionCreate);
     m_processors[xbcTransactionSign]    .bind(this, &XBridgeConnector::processTransactionSign);
     m_processors[xbcTransactionCommit]  .bind(this, &XBridgeConnector::processTransactionCommit);
+    m_processors[xbcTransactionRollback].bind(this, &XBridgeConnector::processTransactionRollback);
     // m_processors[xbcTransactionConfirm] .bind(this, &XBridgeConnector::processTransactionConfirm);
     m_processors[xbcTransactionFinished].bind(this, &XBridgeConnector::processTransactionFinished);
     m_processors[xbcTransactionDropped] .bind(this, &XBridgeConnector::processTransactionCancel);
@@ -864,28 +865,7 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
     }
 
     // transaction id
-    uint256 txid(packet->data()+20);
-
-    // TODO test code
-    XBridgeTransactionPtr xtx;
-    {
-        boost::mutex::scoped_lock l(m_txLocker);
-
-        if (!m_transactions.count(txid))
-        {
-            // wtf? unknown tx
-            // TODO log
-            return false;
-        }
-
-        xtx = m_transactions[txid];
-    }
-
-    // TODO test revert transaction
-    if (xtx->id != uint256())
-    {
-        revertXBridgeTransaction(xtx->id);
-    }
+    // uint256 txid(packet->data()+20);
 
     // TODO update transaction state for gui
     return true;
@@ -903,6 +883,41 @@ bool XBridgeConnector::processTransactionCancel(XBridgePacketPtr packet)
 
     // transaction id
     // uint256 id(packet->data()+20);
+
+    // TODO update transaction state for gui
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::processTransactionRollback(XBridgePacketPtr packet)
+{
+    if (packet->size() != 52)
+    {
+        qDebug() << "incorrect packet size for xbcTransactionRollback" << __FUNCTION__;
+        return false;
+    }
+
+    // transaction id
+    uint256 txid(packet->data()+20);
+
+    // for rollback need local transaction id
+    // TODO maybe hub id?
+    XBridgeTransactionPtr xtx;
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+
+        if (!m_transactions.count(txid))
+        {
+            // wtf? unknown tx
+            // TODO log
+            return false;
+        }
+
+        xtx = m_transactions[txid];
+    }
+
+    revertXBridgeTransaction(xtx->id);
 
     // TODO update transaction state for gui
     return true;

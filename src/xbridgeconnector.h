@@ -60,6 +60,7 @@ private:
     // bool processTransactionConfirm(XBridgePacketPtr packet);
     bool processTransactionFinished(XBridgePacketPtr packet);
     bool processTransactionCancel(XBridgePacketPtr packet);
+    bool processTransactionRollback(XBridgePacketPtr packet);
     bool processTransactionDropped(XBridgePacketPtr packet);
 
 private:
