@@ -95,9 +95,11 @@ enum XBridgeCommand
     xbcTransactionInitialized,
     //
     // xbcTransactionCreate
-    //    uint160 client address
-    //    uint160 hub address
-    //    uint256 hub transaction id
+    //    uint160  client address
+    //    uint160  hub address
+    //    uint256  hub transaction id
+    //    uint160  destination address
+    //    uint32_t lock time (in seconds)
     xbcTransactionCreate,
     //
     // xbcTransactionCreated

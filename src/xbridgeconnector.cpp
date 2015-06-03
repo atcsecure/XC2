@@ -550,7 +550,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     std::vector<unsigned char> destAddress(packet->data()+72, packet->data()+92);
 
     // lock time
-    // boost::uint32_t lockTime = reinterpret_cast<boost::uint32_t >(packet->data()+92);
+    boost::uint32_t lockTime = reinterpret_cast<boost::uint32_t >(packet->data()+92);
 
     XBridgeTransactionPtr xtx;
     {
@@ -627,12 +627,11 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         tx1.vout.push_back(CTxOut(inAmount-outAmount, script));
     }
 
-    // TODO lock time
-//    {
-//        time_t local = 0;
-//        time(&local);
-//        tx1.nLockTime = local + 5*60;
-//    }
+    // lock time
+    {
+        time_t local = GetAdjustedTime();
+        tx1.nLockTime = local + lockTime;
+    }
 
     // serialize
     std::string unsignedTx1 = txToString(tx1);
