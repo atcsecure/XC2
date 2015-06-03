@@ -490,8 +490,8 @@ public:
             nBlockHeight = nBestHeight;
         if (nBlockTime == 0)
             nBlockTime = GetAdjustedTime();
-        if ((int64)nLockTime < ((int64)nLockTime < LOCKTIME_THRESHOLD ? (int64)nBlockHeight : nBlockTime))
-            return true;
+        if ((int64)nLockTime >= ((int64)nLockTime < LOCKTIME_THRESHOLD ? (int64)nBlockHeight : nBlockTime))
+            return false;
         BOOST_FOREACH(const CTxIn& txin, vin)
             if (!txin.IsFinal())
                 return false;

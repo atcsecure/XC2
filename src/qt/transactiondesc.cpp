@@ -9,6 +9,8 @@
 #include "ui_interface.h"
 #include "base58.h"
 
+#include <QDateTime>
+
 QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
 {
     if (!wtx.IsFinal())
@@ -216,6 +218,19 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
 
         strHTML += "<b>" + tr("Transaction ID") + ":</b> " + wtx.GetHash().ToString().c_str() + "<br>";
 
+        if (wtx.nLockTime)
+        {
+            if (wtx.nLockTime > LOCKTIME_THRESHOLD)
+            {
+                strHTML += "<b>" + tr("Lock time") + ":</b> " + QString::number(wtx.nLockTime)
+                        + QString(" ( to %1 )").arg(QDateTime::fromTime_t(wtx.nLockTime).toString("yyyy-MM-dd hh:mm:ss")) + "<br>";
+            }
+            else
+            {
+                strHTML += "<b>" + tr("Lock time") + ":</b> "
+                        + QString(" to block no. %1 ").arg(QString::number(wtx.nLockTime)) + "<br>";
+            }
+        }
 		
 
         if (wtx.IsCoinBase() || wtx.IsCoinStake())
