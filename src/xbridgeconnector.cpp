@@ -550,7 +550,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     std::vector<unsigned char> destAddress(packet->data()+72, packet->data()+92);
 
     // lock time
-    boost::uint32_t lockTime = reinterpret_cast<boost::uint32_t >(packet->data()+92);
+    boost::uint32_t lockTime = *reinterpret_cast<boost::uint32_t *>(packet->data()+92);
 
     XBridgeTransactionPtr xtx;
     {
