@@ -600,11 +600,19 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         return false;
     }
 
-    // create tx1, inputs
+    // create tx1, locked
     CTransaction tx1;
+
+    // lock time
+    {
+        time_t local = GetAdjustedTime();
+        tx1.nLockTime = local + lockTime;
+    }
+
+    // inputs
     BOOST_FOREACH(const COutput & out, usedInTx)
     {
-        CTxIn in(COutPoint(out.tx->GetHash(), out.i));
+        CTxIn in(COutPoint(out.tx->GetHash(), out.i), CScript(), 0);
         tx1.vin.push_back(in);
     }
 
@@ -625,12 +633,6 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         script.SetDestination(key.GetID());
 
         tx1.vout.push_back(CTxOut(inAmount-outAmount, script));
-    }
-
-    // lock time
-    {
-        time_t local = GetAdjustedTime();
-        tx1.nLockTime = local + lockTime;
     }
 
     // serialize
