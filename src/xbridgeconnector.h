@@ -38,6 +38,8 @@ public:
 
     bool transactionReceived(const uint256 & hash);
 
+    std::vector<std::pair<std::string, std::string> > wallets() const;
+
 private:
     CScript destination(const std::vector<unsigned char> & address);
     bool sendCancelTransaction(const std::vector<unsigned char> & hub,
@@ -51,6 +53,7 @@ private:
     bool processXChatMessage(XBridgePacketPtr packet);
 
     bool processExchangeWallets(XBridgePacketPtr packet);
+    bool processPendingTransaction(XBridgePacketPtr packet);
 
     bool processTransactionHold(XBridgePacketPtr packet);
     bool processTransactionInit(XBridgePacketPtr packet);
@@ -67,6 +70,8 @@ private:
     boost::mutex                             m_txLocker;
     std::map<uint256, XBridgeTransactionPtr> m_pendingTransactions;
     std::map<uint256, XBridgeTransactionPtr> m_transactions;
+
+    std::vector<std::pair<std::string, std::string> > m_receivedWallets;
 
     std::set<uint256> m_receivedTransactions;
 };

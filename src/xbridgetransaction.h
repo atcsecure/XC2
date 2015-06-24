@@ -1,6 +1,7 @@
 #ifndef XBRIDGETRANSACTION_H
 #define XBRIDGETRANSACTION_H
 
+#include "xbridgetransactiondescr.h"
 #include "xbridgepacket.h"
 #include "uint256.h"
 #include "main.h"
@@ -14,17 +15,8 @@
 
 //******************************************************************************
 //******************************************************************************
-struct XBridgeTransaction
+struct XBridgeTransaction : public XBridgeTransactionDescr
 {
-    uint256                    id;
-
-    std::vector<unsigned char> from;
-    std::string                fromCurrency;
-    boost::uint64_t            fromAmount;
-    std::vector<unsigned char> to;
-    std::string                toCurrency;
-    boost::uint64_t            toAmount;
-
     // CTransaction               payTx;
     CWalletTx                  payTx;
     CTransaction               revTx;

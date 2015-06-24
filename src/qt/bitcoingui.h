@@ -19,7 +19,7 @@ class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
 class MessagesDialog;
-class XBridgeView;
+class XBridgeTransactionsView;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -72,7 +72,7 @@ private:
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
     MessagesDialog * messagesPage;
-    XBridgeView * xbridgeView;
+    XBridgeTransactionsView * xbridgeTxView;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelMintingIcon;
@@ -168,7 +168,7 @@ private slots:
     /** Switch to messages page*/
     void gotoMessagesPage(const QString & addr = QString());
     /** open xbridge view */
-    void gotoXBridgeView();
+    void gotoXBridgeTxView();
 
     /** Show configuration dialog */
     void optionsClicked();

@@ -1,7 +1,7 @@
 //******************************************************************************
 //******************************************************************************
 
-#include "xbridgeview.h"
+#include "xbridgetransactiondialog.h"
 #include "../ui_interface.h"
 #include "../xbridgeconnector.h"
 #include "../util/verify.h"
@@ -17,31 +17,63 @@
 
 const QString testFrom("2J3u4r9D+pNS6ZPNMYR1tgl+wVI=");
 const QString testTo("BWU9J85uL4242RnXXhZfRdA8p9s=");
-const QString testFromCurrency("XC");
-const QString testToCurrency("SWIFT");
+// const QString testFromCurrency("XC");
+// const QString testToCurrency("SWIFT");
 const QString testFromAmount("0.001");
 const QString testToAmount("0.002");
 
 //******************************************************************************
 //******************************************************************************
-XBridgeView::XBridgeView(QWidget *parent)
-    : QWidget(parent)
+XBridgeTransactionDialog::XBridgeTransactionDialog(XBridgeTransactionsModel & model,
+                                                   QWidget *parent)
+    : QDialog(parent)
+    , m_model(model)
 {
     setupUI();
 
-    uiInterface.NotifyXBridgeExchangeWalletsReceived.connect(boost::bind(&XBridgeView::onWalletListReceived, this, _1));
+    m_walletsNotifier =
+            uiInterface.NotifyXBridgeExchangeWalletsReceived.connect(boost::bind(&XBridgeTransactionDialog::onWalletListReceived, this, _1));
+
+    m_thisWallets << m_model.thisCurrency();
+    m_thisWalletsModel.setStringList(m_thisWallets);
+
+    m_currencyFrom->setCurrentIndex(0);
+
+    onWalletListReceived(xbridge().wallets());
 }
 
 //******************************************************************************
 //******************************************************************************
-XBridgeView::~XBridgeView()
+XBridgeTransactionDialog::~XBridgeTransactionDialog()
 {
-
+    m_walletsNotifier.disconnect();
 }
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeView::setupUI()
+void XBridgeTransactionDialog::setFromAmount(double amount)
+{
+    m_amountFrom->setText(QString::number(amount));
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::setToAmount(double amount)
+{
+    m_amountTo->setText(QString::number(amount));
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::setToCurrency(const QString & currency)
+{
+    int idx = m_wallets.indexOf(currency);
+    m_currencyTo->setCurrentIndex(idx);
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::setupUI()
 {
     QGridLayout * grid = new QGridLayout;
 
@@ -67,7 +99,7 @@ void XBridgeView::setupUI()
     grid->addWidget(m_amountFrom, 3, 0, 1, 1);
 
     m_currencyFrom = new QComboBox(this);
-    m_currencyFrom->setModel(&m_walletsModel);
+    m_currencyFrom->setModel(&m_thisWalletsModel);
     grid->addWidget(m_currencyFrom, 3, 1, 1, 1);
 
     m_amountTo = new QLineEdit(this);
@@ -81,12 +113,15 @@ void XBridgeView::setupUI()
     l = new QLabel(trUtf8(" --- >>> "), this);
     grid->addWidget(l, 1, 2, 3, 1, Qt::AlignHCenter | Qt::AlignCenter);
 
-    m_btnSend = new QPushButton(trUtf8("send transaction"), this);
+    m_btnSend = new QPushButton(trUtf8("New Transaction"), this);
     m_btnSend->setEnabled(false);
+
+    QPushButton * cancel = new QPushButton(trUtf8("Cancel"), this);
 
     QHBoxLayout * hbox = new QHBoxLayout;
     hbox->addStretch();
     hbox->addWidget(m_btnSend);
+    hbox->addWidget(cancel);
 
     grid->addLayout(hbox, 4, 0, 1, 5);
 
@@ -97,11 +132,12 @@ void XBridgeView::setupUI()
     setLayout(vbox);
 
     VERIFY(connect(m_btnSend, SIGNAL(clicked()), this, SLOT(onSendTransaction())));
+    VERIFY(connect(cancel,    SIGNAL(clicked()), this, SLOT(reject())));
 }
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeView::onWalletListReceived(const std::vector<std::pair<std::string, std::string> > & wallets)
+void XBridgeTransactionDialog::onWalletListReceived(const std::vector<std::pair<std::string, std::string> > & wallets)
 {
     QStringList list;
     for (std::vector<std::pair<std::string, std::string> >::const_iterator i = wallets.begin();
@@ -116,15 +152,14 @@ void XBridgeView::onWalletListReceived(const std::vector<std::pair<std::string, 
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeView::onWalletListReceivedHandler(const QStringList & wallets)
+void XBridgeTransactionDialog::onWalletListReceivedHandler(const QStringList & wallets)
 {
+    QString w = m_currencyTo->currentText();
+
     m_wallets = wallets;
     m_walletsModel.setStringList(m_wallets);
 
-    int idx = m_wallets.indexOf(testFromCurrency);
-    m_currencyFrom->setCurrentIndex(idx);
-
-    idx = m_wallets.indexOf(testToCurrency);
+    int idx = m_wallets.indexOf(w);
     m_currencyTo->setCurrentIndex(idx);
 
     m_btnSend->setEnabled(true);
@@ -132,7 +167,7 @@ void XBridgeView::onWalletListReceivedHandler(const QStringList & wallets)
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeView::onSendTransaction()
+void XBridgeTransactionDialog::onSendTransaction()
 {
     std::vector<unsigned char> from = DecodeBase64(m_addressFrom->text().toStdString().c_str());
     std::vector<unsigned char> to   = DecodeBase64(m_addressTo->text().toStdString().c_str());
@@ -158,12 +193,7 @@ void XBridgeView::onSendTransaction()
         return;
     }
 
-    // TODO check amount
-    xbridge().sendXBridgeTransaction(from, fromCurrency, (boost::uint64_t)(fromAmount * 1000000),
-                                     to,   toCurrency,   (boost::uint64_t)(toAmount * 1000000));
+    m_model.newTransaction(from, to, fromCurrency, toCurrency, fromAmount, toAmount);
 
-    // TODO fix to address
-    // std::vector<unsigned char> from = DecodeBase64("2J3u4r9D+pNS6ZPNMYR1tgl+wVI=");
-    // std::vector<unsigned char> to   = DecodeBase64("BWU9J85uL4242RnXXhZfRdA8p9s=");
-    // xbridge().sendXBridgeTransaction(from, "XC", 10 * 1000000, to, "SWIFT", 100 * 1000000);
+    accept();
 }

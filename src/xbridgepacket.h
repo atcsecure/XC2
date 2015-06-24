@@ -185,7 +185,17 @@ enum XBridgeCommand
     //
     // xbcReceivedTransaction
     //     uint256 transaction id (bitcoin transaction hash)
-    xbcReceivedTransaction
+    xbcReceivedTransaction,
+
+    // smart hub broadcast send this message, send list of opened transactions
+    //
+    // xbcPendingTransaction
+    //    uint256 transaction id
+    //    8 bytes source currency
+    //    uint64 source amount
+    //    8 bytes destination currency
+    //    uint64 destination amount
+    xbcPendingTransaction
 };
 
 //******************************************************************************

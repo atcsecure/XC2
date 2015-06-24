@@ -2,6 +2,7 @@
 //******************************************************************************
 
 #include "xbridgeconnector.h"
+#include "xbridgetransactiondescr.h"
 #include "base58.h"
 #include "init.h"
 #include "ui_interface.h"
@@ -34,6 +35,7 @@ XBridgeConnector::XBridgeConnector()
     m_processors[xbcXChatMessage]       .bind(this, &XBridgeConnector::processXChatMessage);
 
     m_processors[xbcExchangeWallets]    .bind(this, &XBridgeConnector::processExchangeWallets);
+    m_processors[xbcPendingTransaction] .bind(this, &XBridgeConnector::processPendingTransaction);
 
     // transactions
     m_processors[xbcTransactionHold]    .bind(this, &XBridgeConnector::processTransactionHold);
@@ -341,6 +343,13 @@ bool XBridgeConnector::transactionReceived(const uint256 & hash)
 
 //******************************************************************************
 //******************************************************************************
+std::vector<std::pair<std::string, std::string> > XBridgeConnector::wallets() const
+{
+    return m_receivedWallets;
+}
+
+//******************************************************************************
+//******************************************************************************
 CScript XBridgeConnector::destination(const std::vector<unsigned char> & address)
 {
     uint160 uikey(address);
@@ -420,8 +429,32 @@ bool XBridgeConnector::processExchangeWallets(XBridgePacketPtr packet)
 
     if (wallets.size())
     {
+        m_receivedWallets = wallets;
         uiInterface.NotifyXBridgeExchangeWalletsReceived(wallets);
     }
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::processPendingTransaction(XBridgePacketPtr packet)
+{
+    if (packet->size() != 64)
+    {
+        qDebug() << "incorrect packet size for xbcTransactionHold" << __FUNCTION__;
+        return false;
+    }
+
+    XBridgeTransactionDescr d;
+    d.id           = uint256(packet->data());
+    d.fromCurrency = std::string(reinterpret_cast<const char *>(packet->data()+32));
+    d.fromAmount   = *reinterpret_cast<boost::uint64_t *>(packet->data()+40);
+    d.toCurrency   = std::string(reinterpret_cast<const char *>(packet->data()+48));
+    d.toAmount     = *reinterpret_cast<boost::uint64_t *>(packet->data()+56);
+    d.state        = XBridgeTransactionDescr::trPending;
+
+    uiInterface.NotifyXBridgePendingTransactionReceived(d);
+
     return true;
 }
 
@@ -493,11 +526,11 @@ bool XBridgeConnector::processTransactionInit(XBridgePacketPtr packet)
 
     std::vector<unsigned char> from(packet->data()+72, packet->data()+92);
     std::string                fromCurrency(reinterpret_cast<const char *>(packet->data()+92));
-    boost::uint64_t            fromAmount(reinterpret_cast<boost::uint64_t>(packet->data()+100));
+    boost::uint64_t            fromAmount(*reinterpret_cast<boost::uint64_t *>(packet->data()+100));
 
     std::vector<unsigned char> to(packet->data()+108, packet->data()+128);
     std::string                toCurrency(reinterpret_cast<const char *>(packet->data()+128));
-    boost::uint64_t            toAmount(reinterpret_cast<boost::uint64_t>(packet->data()+136));
+    boost::uint64_t            toAmount(*reinterpret_cast<boost::uint64_t *>(packet->data()+136));
 
     // create transaction
     // without id (non this client transaction)
@@ -566,7 +599,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         xtx = m_transactions[id];
     }
 
-    boost::uint64_t outAmount = COIN*(static_cast<double>(xtx->fromAmount)/1000000) + MIN_TX_FEE;
+    boost::uint64_t outAmount = COIN*(static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN) + MIN_TX_FEE;
     boost::uint64_t inAmount  = 0;
 
     std::vector<COutput> coins;

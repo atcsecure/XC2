@@ -28,7 +28,7 @@
 #include "wallet.h"
 #include "bitcoinrpc.h"
 #include "messagedialog/messagedialog.h"
-#include "xbridge/xbridgeview.h"
+#include "xbridge/xbridgetransactionsview.h"
 #include "util/verify.h"
 
 #ifdef Q_OS_MAC
@@ -134,7 +134,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     messagesPage = new MessagesDialog(this);
 
     // xbridge view
-    xbridgeView = new XBridgeView(this);
+    xbridgeTxView = new XBridgeTransactionsView(this);
 
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
@@ -143,7 +143,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
     centralWidget->addWidget(messagesPage);
-    centralWidget->addWidget(xbridgeView);
+    centralWidget->addWidget(xbridgeTxView);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -304,7 +304,7 @@ void BitcoinGUI::createActions()
     VERIFY(connect(addressBookAction,     SIGNAL(triggered()), this, SLOT(gotoAddressBookPage())));
     VERIFY(connect(messagesAction,        SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
     VERIFY(connect(messagesAction,        SIGNAL(triggered()), this, SLOT(gotoMessagesPage())));
-    VERIFY(connect(openXbridgeViewAction, SIGNAL(triggered()), this, SLOT(gotoXBridgeView())));
+    VERIFY(connect(openXbridgeViewAction, SIGNAL(triggered()), this, SLOT(gotoXBridgeTxView())));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -903,11 +903,11 @@ void BitcoinGUI::gotoMessagesPage(const QString & addr)
 
 //*****************************************************************************
 //*****************************************************************************
-void BitcoinGUI::gotoXBridgeView()
+void BitcoinGUI::gotoXBridgeTxView()
 {
     openXbridgeViewAction->setChecked(true);
 
-    centralWidget->setCurrentWidget(xbridgeView);
+    centralWidget->setCurrentWidget(xbridgeTxView);
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
