@@ -69,7 +69,7 @@ void XBridgeConnector::handleTimer()
                  i != m_pendingTransactions.end(); ++i)
             {
                 XBridgeTransactionPtr ptr = i->second;
-                if (!ptr->packet)
+                // if (!ptr->packet)
                 {
                     ptr->packet.reset(new XBridgePacket(xbcTransaction));
 

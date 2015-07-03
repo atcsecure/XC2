@@ -5,6 +5,7 @@
 #define XBRIDGETRANSACTIONSVIEW_H
 
 #include "xbridge/xbridgetransactionsmodel.h"
+#include "xbridge/xbridgetransactiondialog.h"
 
 #include <QWidget>
 #include <QMenu>
@@ -36,6 +37,7 @@ private slots:
 
 private:
     XBridgeTransactionsModel m_txModel;
+    XBridgeTransactionDialog m_dlg;
 
     QTableView  * m_transactionsList;
     QMenu       * m_contextMenu;

@@ -13,7 +13,9 @@
 
 //******************************************************************************
 //******************************************************************************
-XBridgeTransactionsView::XBridgeTransactionsView(QWidget *parent) : QWidget(parent)
+XBridgeTransactionsView::XBridgeTransactionsView(QWidget *parent)
+    : QWidget(parent)
+    , m_dlg(m_txModel)
 {
     setupUi();
     setupContextMenu();
@@ -79,8 +81,7 @@ void XBridgeTransactionsView::setupContextMenu()
 //******************************************************************************
 void XBridgeTransactionsView::onNewTransaction()
 {
-    XBridgeTransactionDialog dlg(m_txModel);
-    dlg.exec();
+    m_dlg.show();
 }
 
 //******************************************************************************
@@ -103,11 +104,10 @@ void XBridgeTransactionsView::onAcceptTransaction()
         return;
     }
 
-    XBridgeTransactionDialog dlg(m_txModel);
-    dlg.setFromAmount((double)d.toAmount / XBridgeTransactionDescr::COIN);
-    dlg.setToAmount((double)d.fromAmount / XBridgeTransactionDescr::COIN);
-    dlg.setToCurrency(QString::fromStdString(d.fromCurrency));
-    dlg.exec();
+    m_dlg.setFromAmount((double)d.toAmount / XBridgeTransactionDescr::COIN);
+    m_dlg.setToAmount((double)d.fromAmount / XBridgeTransactionDescr::COIN);
+    m_dlg.setToCurrency(QString::fromStdString(d.fromCurrency));
+    m_dlg.show();
 }
 
 //******************************************************************************
