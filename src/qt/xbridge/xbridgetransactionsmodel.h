@@ -50,10 +50,13 @@ public:
                         const double fromAmount,
                         const double toAmount);
 
+    bool cancelTransaction(const uint256 & id);
+
     XBridgeTransactionDescr item(const unsigned int index) const;
 
 private:
     void onTransactionReceived(const XBridgeTransactionDescr & tx);
+    void onTransactionStateChanged(const uint256 & id);
 
     QString transactionState(const XBridgeTransactionDescr::State state) const;
 

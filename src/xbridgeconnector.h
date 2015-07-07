@@ -34,6 +34,7 @@ public:
                                    const std::vector<unsigned char> & to,
                                    const std::string & toCurrency,
                                    const boost::uint64_t toAmount);
+    bool cancelXBridgeTransaction(const uint256 & id);
     bool revertXBridgeTransaction(const uint256 & id);
 
     bool transactionReceived(const uint256 & hash);
@@ -42,8 +43,7 @@ public:
 
 private:
     CScript destination(const std::vector<unsigned char> & address);
-    bool sendCancelTransaction(const std::vector<unsigned char> & hub,
-                               const uint256 & txid);
+    bool sendCancelTransaction(const uint256 & txid);
 
     std::string txToString(const CTransaction & tx) const;
     CTransaction txFromString(const std::string & str) const;

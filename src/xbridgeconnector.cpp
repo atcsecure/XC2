@@ -278,6 +278,22 @@ uint256 XBridgeConnector::sendXBridgeTransaction(const std::vector<unsigned char
 
 //******************************************************************************
 //******************************************************************************
+bool XBridgeConnector::cancelXBridgeTransaction(const uint256 & id)
+{
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+        m_pendingTransactions.erase(id);
+        if (m_transactions.count(id))
+        {
+            m_transactions[id]->state = XBridgeTransactionDescr::trCancelled;
+        }
+    }
+
+    sendCancelTransaction(id);
+}
+
+//******************************************************************************
+//******************************************************************************
 bool XBridgeConnector::revertXBridgeTransaction(const uint256 & id)
 {
     // TODO temporary implementation
@@ -365,11 +381,9 @@ CScript XBridgeConnector::destination(const std::vector<unsigned char> & address
 
 //******************************************************************************
 //******************************************************************************
-bool XBridgeConnector::sendCancelTransaction(const std::vector<unsigned char> & hub,
-                                             const uint256 & txid)
+bool XBridgeConnector::sendCancelTransaction(const uint256 & txid)
 {
     XBridgePacket reply(xbcTransactionCancel);
-    reply.append(hub);
     reply.append(txid.begin(), 32);
     if (!sendPacket(reply))
     {
@@ -494,7 +508,11 @@ bool XBridgeConnector::processTransactionHold(XBridgePacketPtr packet)
 
         // move to processing
         m_transactions[newid] = xtx;
+
+        xtx->state = XBridgeTransactionDescr::trHold;
     }
+
+    uiInterface.NotifyXBridgeTransactionStateChanged(id);
 
     // send hold apply
     XBridgePacket reply(xbcTransactionHoldApply);
@@ -629,7 +647,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     if (inAmount < outAmount)
     {
         // no money, cancel transaction
-        sendCancelTransaction(hubAddress, id);
+        sendCancelTransaction(id);
         return false;
     }
 
@@ -658,7 +676,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         if (!pwalletMain->GetKeyFromPool(key, false))
         {
             // error, cancel tx
-            sendCancelTransaction(hubAddress, id);
+            sendCancelTransaction(id);
             return false;
         }
 
@@ -678,7 +696,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         if (!SignSignature(*pwalletMain, *out.tx, tx1, i++))
         {
             // do not sign, cancel
-            sendCancelTransaction(hubAddress, id);
+            sendCancelTransaction(id);
             return false;
         }
     }
@@ -697,7 +715,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         if (!pwalletMain->GetKeyFromPool(key, false))
         {
             // error, cancel tx
-            sendCancelTransaction(hubAddress, id);
+            sendCancelTransaction(id);
             return false;
         }
 
@@ -719,6 +737,9 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
 
     // store
     xtx->revTx = tx2;
+
+    xtx->state = XBridgeTransactionDescr::trCreated;
+    uiInterface.NotifyXBridgeTransactionStateChanged(id);
 
     // send reply
     XBridgePacket reply(xbcTransactionCreated);
@@ -786,10 +807,13 @@ bool XBridgeConnector::processTransactionSign(XBridgePacketPtr packet)
         if (!SignSignature(*pwalletMain, txpay, txrev, i))
         {
             // not signed, cancel tx
-            sendCancelTransaction(hubAddress, txid);
+            sendCancelTransaction(txid);
             return false;
         }
     }
+
+    xtx->state = XBridgeTransactionDescr::trSigned;
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
 
     // send reply
     XBridgePacket reply(xbcTransactionSigned);
@@ -847,11 +871,14 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
     if (!pwalletMain->CommitTransaction(xtx->payTx, rkeys))
     {
         // not commited....send cancel???
-        // sendCancelTransaction(hubAddress, id);
+        // sendCancelTransaction(id);
         return false;
     }
 
-    xtx->payTx.GetHash();
+    // xtx->payTx.GetHash();
+
+    xtx->state = XBridgeTransactionDescr::trCommited;
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
 
     // send commit apply to hub
     XBridgePacket reply(xbcTransactionCommited);
@@ -899,9 +926,26 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
     }
 
     // transaction id
-    // uint256 txid(packet->data()+20);
+    uint256 txid(packet->data()+20);
 
-    // TODO update transaction state for gui
+    XBridgeTransactionPtr xtx;
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+
+        if (!m_transactions.count(txid))
+        {
+            // wtf? unknown transaction
+            // TODO log
+            return false;
+        }
+
+        xtx = m_transactions[txid];
+    }
+
+    // update transaction state for gui
+    xtx->state = XBridgeTransactionDescr::trFinished;
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
+
     return true;
 }
 
@@ -916,9 +960,26 @@ bool XBridgeConnector::processTransactionCancel(XBridgePacketPtr packet)
     }
 
     // transaction id
-    // uint256 id(packet->data()+20);
+    uint256 id(packet->data()+20);
 
-    // TODO update transaction state for gui
+    XBridgeTransactionPtr xtx;
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+
+        if (!m_transactions.count(id))
+        {
+            // wtf? unknown transaction
+            // TODO log
+            return false;
+        }
+
+        xtx = m_transactions[id];
+    }
+
+    // update transaction state for gui
+    xtx->state = XBridgeTransactionDescr::trCancelled;
+    uiInterface.NotifyXBridgeTransactionStateChanged(id);
+
     return true;
 }
 
@@ -953,7 +1014,10 @@ bool XBridgeConnector::processTransactionRollback(XBridgePacketPtr packet)
 
     revertXBridgeTransaction(xtx->id);
 
-    // TODO update transaction state for gui
+    // update transaction state for gui
+    xtx->state = XBridgeTransactionDescr::trRollback;
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
+
     return true;
 }
 
@@ -968,8 +1032,25 @@ bool XBridgeConnector::processTransactionDropped(XBridgePacketPtr packet)
     }
 
     // transaction id
-    // uint256 id(packet->data()+20);
+    uint256 id(packet->data()+20);
 
-    // TODO update transaction state for gui
+    XBridgeTransactionPtr xtx;
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+
+        if (!m_transactions.count(id))
+        {
+            // wtf? unknown transaction
+            // TODO log
+            return false;
+        }
+
+        xtx = m_transactions[id];
+    }
+
+    // update transaction state for gui
+    xtx->state = XBridgeTransactionDescr::trDropped;
+    uiInterface.NotifyXBridgeTransactionStateChanged(id);
+
     return true;
 }

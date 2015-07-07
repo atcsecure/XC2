@@ -19,7 +19,15 @@ struct XBridgeTransactionDescr
     {
         trInvalid = 0,
         trNew,
-        trPending
+        trPending,
+        trHold,
+        trCreated,
+        trSigned,
+        trCommited,
+        trFinished,
+        trCancelled,
+        trRollback,
+        trDropped
     };
 
     uint256                    id;

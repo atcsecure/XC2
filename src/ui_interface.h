@@ -114,6 +114,12 @@ public:
      * @brief NotifyXBridgePendingTransactionReceived
      */
     boost::signals2::signal<void (const XBridgeTransactionDescr & tx)> NotifyXBridgePendingTransactionReceived;
+
+
+    /**
+     * @brief NotifyXBridgeTransactionStateChanged
+     */
+    boost::signals2::signal<void (const uint256 & id)> NotifyXBridgeTransactionStateChanged;
 };
 
 extern CClientUIInterface uiInterface;

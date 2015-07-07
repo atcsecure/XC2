@@ -27,11 +27,13 @@ public slots:
 
 private:
     void setupUi();
-    void setupContextMenu();
+    QMenu * setupContextMenu(QModelIndex & index);
 
 private slots:
     void onNewTransaction();
     void onAcceptTransaction();
+    void onCancelTransaction();
+    void onRollbackTransaction();
 
     void onContextMenu(QPoint pt);
 
@@ -40,7 +42,7 @@ private:
     XBridgeTransactionDialog m_dlg;
 
     QTableView  * m_transactionsList;
-    QMenu       * m_contextMenu;
+
     QModelIndex   m_contextMenuIndex;
 };
 

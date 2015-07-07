@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QMessageBox>
 
 //******************************************************************************
 //******************************************************************************
@@ -18,7 +19,6 @@ XBridgeTransactionsView::XBridgeTransactionsView(QWidget *parent)
     , m_dlg(m_txModel)
 {
     setupUi();
-    setupContextMenu();
 }
 
 //******************************************************************************
@@ -65,16 +65,37 @@ void XBridgeTransactionsView::setupUi()
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeTransactionsView::setupContextMenu()
+QMenu * XBridgeTransactionsView::setupContextMenu(QModelIndex & index)
 {
-    m_contextMenu = new QMenu();
+    QMenu * contextMenu = new QMenu();
 
-    QAction * acceptTransaction = new QAction(tr("&Accept transaction"), this);
-    m_contextMenu->addAction(acceptTransaction);
+    if (!m_txModel.isMyTransaction(index.row()))
+    {
+        QAction * acceptTransaction = new QAction(tr("&Accept transaction"), this);
+        contextMenu->addAction(acceptTransaction);
 
-    VERIFY(connect(acceptTransaction,   SIGNAL(triggered()),
-                   this,                SLOT(onAcceptTransaction())));
+        VERIFY(connect(acceptTransaction,   SIGNAL(triggered()),
+                       this,                SLOT(onAcceptTransaction())));
+    }
+    else
+    {
+        QAction * cancelTransaction = new QAction(tr("&Cancel transaction"), this);
+        contextMenu->addAction(cancelTransaction);
 
+        VERIFY(connect(cancelTransaction,   SIGNAL(triggered()),
+                       this,                SLOT(onCancelTransaction())));
+    }
+
+    if (false)
+    {
+        QAction * rollbackTransaction = new QAction(tr("&Rollback transaction"), this);
+        contextMenu->addAction(rollbackTransaction);
+
+        VERIFY(connect(rollbackTransaction, SIGNAL(triggered()),
+                       this,                SLOT(onRollbackTransaction())));
+    }
+
+    return contextMenu;
 }
 
 //******************************************************************************
@@ -112,6 +133,39 @@ void XBridgeTransactionsView::onAcceptTransaction()
 
 //******************************************************************************
 //******************************************************************************
+void XBridgeTransactionsView::onCancelTransaction()
+{
+    if (!m_contextMenuIndex.isValid())
+    {
+        return;
+    }
+
+    if (QMessageBox::warning(this,
+                             trUtf8("Cancel transaction"),
+                             trUtf8("Are you syre?"),
+                             QMessageBox::Yes | QMessageBox::Cancel,
+                             QMessageBox::Cancel) != QMessageBox::Yes)
+    {
+        return;
+    }
+
+    if (!m_txModel.cancelTransaction(m_txModel.item(m_contextMenuIndex.row()).id))
+    {
+        QMessageBox::warning(this,
+                             trUtf8("Cancel transaction"),
+                             trUtf8("Error send cancel request"));
+    }
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionsView::onRollbackTransaction()
+{
+
+}
+
+//******************************************************************************
+//******************************************************************************
 void XBridgeTransactionsView::onContextMenu(QPoint pt)
 {
     m_contextMenuIndex = m_transactionsList->indexAt(pt);
@@ -120,10 +174,8 @@ void XBridgeTransactionsView::onContextMenu(QPoint pt)
         return;
     }
 
-    if (m_txModel.isMyTransaction(m_contextMenuIndex.row()))
-    {
-        return;
-    }
+    QMenu * contextMenu = setupContextMenu(m_contextMenuIndex);
 
-    m_contextMenu->exec(QCursor::pos());
+    contextMenu->exec(QCursor::pos());
+    contextMenu->deleteLater();
 }

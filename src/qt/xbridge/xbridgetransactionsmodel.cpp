@@ -16,6 +16,9 @@ XBridgeTransactionsModel::XBridgeTransactionsModel()
 
     uiInterface.NotifyXBridgePendingTransactionReceived.connect
             (boost::bind(&XBridgeTransactionsModel::onTransactionReceived, this, _1));
+
+    uiInterface.NotifyXBridgeTransactionStateChanged.connect
+            (boost::bind(&XBridgeTransactionsModel::onTransactionStateChanged, this, _1));
 }
 
 //******************************************************************************
@@ -183,6 +186,27 @@ bool XBridgeTransactionsModel::newTransaction(const std::vector<unsigned char> &
 
 //******************************************************************************
 //******************************************************************************
+bool XBridgeTransactionsModel::cancelTransaction(const uint256 & id)
+{
+    if (xbridge().cancelXBridgeTransaction(id))
+    {
+        for (unsigned int i = 0; i < m_transactions.size(); ++i)
+        {
+            if (m_transactions[i].id == id)
+            {
+                // found
+                m_transactions[i].state = XBridgeTransactionDescr::trCancelled;
+                emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+//******************************************************************************
+//******************************************************************************
 void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDescr & tx)
 {
     for (unsigned int i = 0; i < m_transactions.size(); ++i)
@@ -194,7 +218,8 @@ void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDes
             {
                 m_transactions[i] = tx;
             }
-            else if (m_transactions[i].state < tx.state)
+
+            // else if (m_transactions[i].state < tx.state)
             {
                 m_transactions[i].state = tx.state;
             }
@@ -217,13 +242,36 @@ void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDes
 
 //******************************************************************************
 //******************************************************************************
+void XBridgeTransactionsModel::onTransactionStateChanged(const uint256 & id)
+{
+    for (unsigned int i = 0; i < m_transactions.size(); ++i)
+    {
+        if (m_transactions[i].id == id)
+        {
+            // found
+            emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
+            return;
+        }
+    }
+}
+
+//******************************************************************************
+//******************************************************************************
 QString XBridgeTransactionsModel::transactionState(const XBridgeTransactionDescr::State state) const
 {
     switch (state)
     {
-        case XBridgeTransactionDescr::trInvalid: return trUtf8("Invalid");
-        case XBridgeTransactionDescr::trNew:     return trUtf8("New");
-        case XBridgeTransactionDescr::trPending: return trUtf8("Pending");
-        default:                                 return trUtf8("Unknown");
+        case XBridgeTransactionDescr::trInvalid:   return trUtf8("Invalid");
+        case XBridgeTransactionDescr::trNew:       return trUtf8("New");
+        case XBridgeTransactionDescr::trPending:   return trUtf8("Pending");
+        case XBridgeTransactionDescr::trHold:      return trUtf8("Hold");
+        case XBridgeTransactionDescr::trCreated:   return trUtf8("Created");
+        case XBridgeTransactionDescr::trSigned:    return trUtf8("Signed");
+        case XBridgeTransactionDescr::trCommited:  return trUtf8("Commited");
+        case XBridgeTransactionDescr::trFinished:  return trUtf8("Finished");
+        case XBridgeTransactionDescr::trCancelled: return trUtf8("Cancelled");
+        case XBridgeTransactionDescr::trRollback:  return trUtf8("Rolled Back");
+        case XBridgeTransactionDescr::trDropped:   return trUtf8("Dropped");
+        default:                                   return trUtf8("Unknown");
     }
 }
