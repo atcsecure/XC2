@@ -42,9 +42,17 @@ void XBridgeTransactionsView::setupUi()
 
 
     QHeaderView * header = m_transactionsList->horizontalHeader();
+#if QT_VERSION <0x050000
     header->setResizeMode(XBridgeTransactionsModel::AddressFrom, QHeaderView::Stretch);
+#else
+    header->setSectionResizeMode(XBridgeTransactionsModel::AddressFrom, QHeaderView::Stretch);
+#endif
     header->resizeSection(XBridgeTransactionsModel::AmountFrom,  80);
-    header->setResizeMode(XBridgeTransactionsModel::AddressTo,   QHeaderView::Stretch);
+#if QT_VERSION <0x050000
+    header->setResizeMode(XBridgeTransactionsModel::AddressTo, QHeaderView::Stretch);
+#else
+    header->setSectionResizeMode(XBridgeTransactionsModel::AddressTo, QHeaderView::Stretch);
+#endif
     header->resizeSection(XBridgeTransactionsModel::AmountTo,    80);
     header->resizeSection(XBridgeTransactionsModel::State,       128);
     vbox->addWidget(m_transactionsList);
