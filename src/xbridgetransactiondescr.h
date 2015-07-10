@@ -17,17 +17,17 @@ struct XBridgeTransactionDescr
 
     enum State
     {
-        trInvalid = 0,
-        trNew,
+        trNew = 0,
         trPending,
         trHold,
         trCreated,
         trSigned,
         trCommited,
         trFinished,
-        trCancelled,
         trRollback,
-        trDropped
+        trDropped,
+        trCancelled,
+        trInvalid
     };
 
     uint256                    id;

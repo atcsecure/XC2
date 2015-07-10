@@ -219,7 +219,7 @@ void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDes
                 m_transactions[i] = tx;
             }
 
-            // else if (m_transactions[i].state < tx.state)
+            else if (m_transactions[i].state < tx.state)
             {
                 m_transactions[i].state = tx.state;
             }

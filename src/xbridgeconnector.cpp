@@ -252,12 +252,14 @@ uint256 XBridgeConnector::sendXBridgeTransaction(const std::vector<unsigned char
         return uint256();
     }
 
+    boost::uint32_t timestamp = time(0);
     uint256 id = Hash(from.begin(), from.end(),
                       fromCurrency.begin(), fromCurrency.end(),
                       BEGIN(fromAmount), END(fromAmount),
                       to.begin(), to.end(),
                       toCurrency.begin(), toCurrency.end(),
-                      BEGIN(toAmount), END(toAmount));
+                      BEGIN(toAmount), END(toAmount),
+                      BEGIN(timestamp), END(timestamp));
 
     XBridgeTransactionPtr ptr(new XBridgeTransaction);
     ptr->id           = id;
