@@ -289,7 +289,7 @@ bool XBridgeConnector::cancelXBridgeTransaction(const uint256 & id)
         }
     }
 
-    sendCancelTransaction(id);
+    return sendCancelTransaction(id);
 }
 
 //******************************************************************************
