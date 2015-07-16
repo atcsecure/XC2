@@ -18,7 +18,7 @@ XBridgeTransactionsModel::XBridgeTransactionsModel()
             (boost::bind(&XBridgeTransactionsModel::onTransactionReceived, this, _1));
 
     uiInterface.NotifyXBridgeTransactionStateChanged.connect
-            (boost::bind(&XBridgeTransactionsModel::onTransactionStateChanged, this, _1));
+            (boost::bind(&XBridgeTransactionsModel::onTransactionStateChanged, this, _1, _2));
 }
 
 //******************************************************************************
@@ -242,7 +242,8 @@ void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDes
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeTransactionsModel::onTransactionStateChanged(const uint256 & id)
+void XBridgeTransactionsModel::onTransactionStateChanged(const uint256 & id,
+                                                         const unsigned int state)
 {
     for (unsigned int i = 0; i < m_transactions.size(); ++i)
     {

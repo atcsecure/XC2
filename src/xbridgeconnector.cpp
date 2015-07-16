@@ -514,11 +514,12 @@ bool XBridgeConnector::processTransactionHold(XBridgePacketPtr packet)
         xtx->state = XBridgeTransactionDescr::trHold;
     }
 
-    uiInterface.NotifyXBridgeTransactionStateChanged(id);
+    uiInterface.NotifyXBridgeTransactionStateChanged(id, XBridgeTransactionDescr::trHold);
 
     // send hold apply
     XBridgePacket reply(xbcTransactionHoldApply);
     reply.append(hubAddress);
+    reply.append(thisAddress);
     reply.append(newid.begin(), 32);
 
     if (!sendPacket(reply))
@@ -741,7 +742,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     xtx->revTx = tx2;
 
     xtx->state = XBridgeTransactionDescr::trCreated;
-    uiInterface.NotifyXBridgeTransactionStateChanged(id);
+    uiInterface.NotifyXBridgeTransactionStateChanged(id, xtx->state);
 
     // send reply
     XBridgePacket reply(xbcTransactionCreated);
@@ -815,7 +816,7 @@ bool XBridgeConnector::processTransactionSign(XBridgePacketPtr packet)
     }
 
     xtx->state = XBridgeTransactionDescr::trSigned;
-    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     // send reply
     XBridgePacket reply(xbcTransactionSigned);
@@ -880,7 +881,7 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
     // xtx->payTx.GetHash();
 
     xtx->state = XBridgeTransactionDescr::trCommited;
-    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     // send commit apply to hub
     XBridgePacket reply(xbcTransactionCommited);
@@ -946,7 +947,7 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
 
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trFinished;
-    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     return true;
 }
@@ -980,7 +981,7 @@ bool XBridgeConnector::processTransactionCancel(XBridgePacketPtr packet)
 
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trCancelled;
-    uiInterface.NotifyXBridgeTransactionStateChanged(id);
+    uiInterface.NotifyXBridgeTransactionStateChanged(id, xtx->state);
 
     return true;
 }
@@ -1018,7 +1019,7 @@ bool XBridgeConnector::processTransactionRollback(XBridgePacketPtr packet)
 
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trRollback;
-    uiInterface.NotifyXBridgeTransactionStateChanged(txid);
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     return true;
 }
@@ -1052,7 +1053,7 @@ bool XBridgeConnector::processTransactionDropped(XBridgePacketPtr packet)
 
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trDropped;
-    uiInterface.NotifyXBridgeTransactionStateChanged(id);
+    uiInterface.NotifyXBridgeTransactionStateChanged(id, xtx->state);
 
     return true;
 }

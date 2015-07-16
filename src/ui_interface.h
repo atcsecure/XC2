@@ -119,7 +119,7 @@ public:
     /**
      * @brief NotifyXBridgeTransactionStateChanged
      */
-    boost::signals2::signal<void (const uint256 & id)> NotifyXBridgeTransactionStateChanged;
+    boost::signals2::signal<void (const uint256 & id, const unsigned int state)> NotifyXBridgeTransactionStateChanged;
 };
 
 extern CClientUIInterface uiInterface;

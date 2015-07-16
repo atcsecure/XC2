@@ -56,7 +56,7 @@ public:
 
 private:
     void onTransactionReceived(const XBridgeTransactionDescr & tx);
-    void onTransactionStateChanged(const uint256 & id);
+    void onTransactionStateChanged(const uint256 & id, const unsigned int state);
 
     QString transactionState(const XBridgeTransactionDescr::State state) const;
 
