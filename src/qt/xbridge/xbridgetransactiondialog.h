@@ -25,6 +25,7 @@ public:
     explicit XBridgeTransactionDialog(XBridgeTransactionsModel & model, QWidget *parent = 0);
     ~XBridgeTransactionDialog();
 
+    void setPendingId(const uint256 & id);
     void setFromAmount(double amount);
     void setToAmount(double amount);
     void setToCurrency(const QString & currency);
@@ -42,6 +43,8 @@ private slots:
 
 private:
     XBridgeTransactionsModel & m_model;
+
+    uint256        m_pendingId;
 
     QLineEdit    * m_addressFrom;
     QLineEdit    * m_addressTo;

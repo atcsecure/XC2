@@ -514,6 +514,7 @@ bool XBridgeConnector::processTransactionHold(XBridgePacketPtr packet)
         xtx->state = XBridgeTransactionDescr::trHold;
     }
 
+    uiInterface.NotifyXBridgeTransactionIdChanged(id, newid);
     uiInterface.NotifyXBridgeTransactionStateChanged(id, XBridgeTransactionDescr::trHold);
 
     // send hold apply
@@ -922,14 +923,14 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
 //******************************************************************************
 bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
 {
-    if (packet->size() != 52)
+    if (packet->size() != 32)
     {
         qDebug() << "incorrect packet size for xbcTransactionFinished" << __FUNCTION__;
         return false;
     }
 
     // transaction id
-    uint256 txid(packet->data()+20);
+    uint256 txid(packet->data());
 
     XBridgeTransactionPtr xtx;
     {
@@ -1028,14 +1029,14 @@ bool XBridgeConnector::processTransactionRollback(XBridgePacketPtr packet)
 //******************************************************************************
 bool XBridgeConnector::processTransactionDropped(XBridgePacketPtr packet)
 {
-    if (packet->size() != 52)
+    if (packet->size() != 32)
     {
         qDebug() << "incorrect packet size for xbcTransactionDropped" << __FUNCTION__;
         return false;
     }
 
     // transaction id
-    uint256 id(packet->data()+20);
+    uint256 id(packet->data());
 
     XBridgeTransactionPtr xtx;
     {

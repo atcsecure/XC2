@@ -51,6 +51,19 @@ XBridgeTransactionDialog::~XBridgeTransactionDialog()
 
 //******************************************************************************
 //******************************************************************************
+void XBridgeTransactionDialog::setPendingId(const uint256 & id)
+{
+    m_pendingId = id;
+    bool isPending = m_pendingId != uint256();
+
+    m_amountFrom->setEnabled(!isPending);
+    m_amountTo->setEnabled(!isPending);
+    m_currencyFrom->setEnabled(!isPending);
+    m_currencyTo->setEnabled(!isPending);
+}
+
+//******************************************************************************
+//******************************************************************************
 void XBridgeTransactionDialog::setFromAmount(double amount)
 {
     m_amountFrom->setText(QString::number(amount));
@@ -193,7 +206,16 @@ void XBridgeTransactionDialog::onSendTransaction()
         return;
     }
 
-    m_model.newTransaction(from, to, fromCurrency, toCurrency, fromAmount, toAmount);
+    if (m_pendingId != uint256())
+    {
+        // accept pending tx
+        m_model.newTransactionFromPending(m_pendingId, from, to);
+    }
+    else
+    {
+        // new tx
+        m_model.newTransaction(from, to, fromCurrency, toCurrency, fromAmount, toAmount);
+    }
 
     accept();
 }

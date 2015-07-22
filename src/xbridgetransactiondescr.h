@@ -19,6 +19,7 @@ struct XBridgeTransactionDescr
     {
         trNew = 0,
         trPending,
+        trAccepting,
         trHold,
         trCreated,
         trSigned,

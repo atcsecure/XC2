@@ -19,6 +19,9 @@ XBridgeTransactionsModel::XBridgeTransactionsModel()
 
     uiInterface.NotifyXBridgeTransactionStateChanged.connect
             (boost::bind(&XBridgeTransactionsModel::onTransactionStateChanged, this, _1, _2));
+
+    uiInterface.NotifyXBridgeTransactionIdChanged.connect
+            (boost::bind(&XBridgeTransactionsModel::onTransactionIdChanged, this, _1, _2));
 }
 
 //******************************************************************************
@@ -186,6 +189,38 @@ bool XBridgeTransactionsModel::newTransaction(const std::vector<unsigned char> &
 
 //******************************************************************************
 //******************************************************************************
+bool XBridgeTransactionsModel::newTransactionFromPending(const uint256 & id,
+                                                         const std::vector<unsigned char> & from,
+                                                         const std::vector<unsigned char> & to)
+{
+    for (unsigned int i = 0; i < m_transactions.size(); ++i)
+    {
+        if (m_transactions[i].id == id)
+        {
+            // found
+            XBridgeTransactionDescr & d = m_transactions[i];
+            d.from  = from;
+            d.to    = to;
+            d.state = XBridgeTransactionDescr::trAccepting;
+            std::swap(d.fromCurrency, d.toCurrency);
+            std::swap(d.fromAmount, d.toAmount);
+
+            emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
+
+            // send tx
+            xbridge().sendXBridgeTransaction
+                    (d.from, d.fromCurrency, d.fromAmount,
+                     d.to,   d.toCurrency,   d.toAmount);
+
+            break;
+        }
+    }
+
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
 bool XBridgeTransactionsModel::cancelTransaction(const uint256 & id)
 {
     if (xbridge().cancelXBridgeTransaction(id))
@@ -242,6 +277,22 @@ void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDes
 
 //******************************************************************************
 //******************************************************************************
+void XBridgeTransactionsModel::onTransactionIdChanged(const uint256 & id,
+                                                      const uint256 & newid)
+{
+    for (std::vector<XBridgeTransactionDescr>::iterator i = m_transactions.begin();
+         i != m_transactions.end(); ++i)
+    {
+        if (i->id == id)
+        {
+            i->id = newid;
+            break;
+        }
+    }
+}
+
+//******************************************************************************
+//******************************************************************************
 void XBridgeTransactionsModel::onTransactionStateChanged(const uint256 & id,
                                                          const unsigned int state)
 {
@@ -265,6 +316,7 @@ QString XBridgeTransactionsModel::transactionState(const XBridgeTransactionDescr
         case XBridgeTransactionDescr::trInvalid:   return trUtf8("Invalid");
         case XBridgeTransactionDescr::trNew:       return trUtf8("New");
         case XBridgeTransactionDescr::trPending:   return trUtf8("Pending");
+        case XBridgeTransactionDescr::trAccepting: return trUtf8("Accepting");
         case XBridgeTransactionDescr::trHold:      return trUtf8("Hold");
         case XBridgeTransactionDescr::trCreated:   return trUtf8("Created");
         case XBridgeTransactionDescr::trSigned:    return trUtf8("Signed");

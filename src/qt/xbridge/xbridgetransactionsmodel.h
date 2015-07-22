@@ -49,6 +49,9 @@ public:
                         const std::string & toCurrency,
                         const double fromAmount,
                         const double toAmount);
+    bool newTransactionFromPending(const uint256 & id,
+                                   const std::vector<unsigned char> & from,
+                                   const std::vector<unsigned char> & to);
 
     bool cancelTransaction(const uint256 & id);
 
@@ -56,6 +59,7 @@ public:
 
 private:
     void onTransactionReceived(const XBridgeTransactionDescr & tx);
+    void onTransactionIdChanged(const uint256 & id, const uint256 & newid);
     void onTransactionStateChanged(const uint256 & id, const unsigned int state);
 
     QString transactionState(const XBridgeTransactionDescr::State state) const;

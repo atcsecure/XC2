@@ -110,6 +110,7 @@ QMenu * XBridgeTransactionsView::setupContextMenu(QModelIndex & index)
 //******************************************************************************
 void XBridgeTransactionsView::onNewTransaction()
 {
+    m_dlg.setPendingId(uint256());
     m_dlg.show();
 }
 
@@ -133,6 +134,7 @@ void XBridgeTransactionsView::onAcceptTransaction()
         return;
     }
 
+    m_dlg.setPendingId(d.id);
     m_dlg.setFromAmount((double)d.toAmount / XBridgeTransactionDescr::COIN);
     m_dlg.setToAmount((double)d.fromAmount / XBridgeTransactionDescr::COIN);
     m_dlg.setToCurrency(QString::fromStdString(d.fromCurrency));
