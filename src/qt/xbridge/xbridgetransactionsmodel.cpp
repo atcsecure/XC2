@@ -208,9 +208,8 @@ bool XBridgeTransactionsModel::newTransactionFromPending(const uint256 & id,
             emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
 
             // send tx
-            xbridge().sendXBridgeTransaction
-                    (d.from, d.fromCurrency, d.fromAmount,
-                     d.to,   d.toCurrency,   d.toAmount);
+            d.id = xbridge().sendXBridgeTransaction(d.from, d.fromCurrency, d.fromAmount,
+                                                    d.to,   d.toCurrency,   d.toAmount);
 
             break;
         }
@@ -301,6 +300,7 @@ void XBridgeTransactionsModel::onTransactionStateChanged(const uint256 & id,
         if (m_transactions[i].id == id)
         {
             // found
+            m_transactions[i].state = static_cast<XBridgeTransactionDescr::State>(state);
             emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
             return;
         }

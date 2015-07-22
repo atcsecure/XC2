@@ -68,37 +68,7 @@ void XBridgeConnector::handleTimer()
             for (std::map<uint256, XBridgeTransactionPtr>::iterator i = m_pendingTransactions.begin();
                  i != m_pendingTransactions.end(); ++i)
             {
-                XBridgeTransactionPtr ptr = i->second;
-                // if (!ptr->packet)
-                {
-                    ptr->packet.reset(new XBridgePacket(xbcTransaction));
-
-                    // field length must be 8 bytes
-                    std::vector<unsigned char> fc(8, 0);
-                    std::copy(ptr->fromCurrency.begin(), ptr->fromCurrency.end(), fc.begin());
-
-                    // field length must be 8 bytes
-                    std::vector<unsigned char> tc(8, 0);
-                    std::copy(ptr->toCurrency.begin(), ptr->toCurrency.end(), tc.begin());
-
-                    // 20 bytes - id of transaction
-                    // 2x
-                    // 20 bytes - address
-                    //  8 bytes - currency
-                    //  4 bytes - amount
-                    ptr->packet->append(ptr->id.begin(), 32);
-                    ptr->packet->append(ptr->from);
-                    ptr->packet->append(fc);
-                    ptr->packet->append(ptr->fromAmount);
-                    ptr->packet->append(ptr->to);
-                    ptr->packet->append(tc);
-                    ptr->packet->append(ptr->toAmount);
-                }
-
-                if (!sendPacket(*(ptr->packet)))
-                {
-                    qDebug() << "send transaction error " << __FUNCTION__;
-                }
+                sendPendingTransaction(i->second);
             }
 
             m_txLocker.unlock();
@@ -275,6 +245,9 @@ uint256 XBridgeConnector::sendXBridgeTransaction(const std::vector<unsigned char
         m_pendingTransactions[id] = ptr;
     }
 
+    // try send immediatelly
+    sendPendingTransaction(ptr);
+
     return id;
 }
 
@@ -379,6 +352,54 @@ CScript XBridgeConnector::destination(const std::vector<unsigned char> & address
     CScript addr;
     addr.SetDestination(baddr.Get());
     return addr;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::sendPendingTransaction(XBridgeTransactionPtr & ptr)
+{
+    if (!m_socket.is_open())
+    {
+        qDebug() << "send transaction error, socket is closed " << __FUNCTION__;
+        return false;
+    }
+
+    // if (!ptr->packet)
+    {
+        ptr->packet.reset(new XBridgePacket(xbcTransaction));
+
+        // field length must be 8 bytes
+        std::vector<unsigned char> fc(8, 0);
+        std::copy(ptr->fromCurrency.begin(), ptr->fromCurrency.end(), fc.begin());
+
+        // field length must be 8 bytes
+        std::vector<unsigned char> tc(8, 0);
+        std::copy(ptr->toCurrency.begin(), ptr->toCurrency.end(), tc.begin());
+
+        // 20 bytes - id of transaction
+        // 2x
+        // 20 bytes - address
+        //  8 bytes - currency
+        //  4 bytes - amount
+        ptr->packet->append(ptr->id.begin(), 32);
+        ptr->packet->append(ptr->from);
+        ptr->packet->append(fc);
+        ptr->packet->append(ptr->fromAmount);
+        ptr->packet->append(ptr->to);
+        ptr->packet->append(tc);
+        ptr->packet->append(ptr->toAmount);
+    }
+
+    if (!sendPacket(*(ptr->packet)))
+    {
+        qDebug() << "send transaction error " << __FUNCTION__;
+        return false;
+    }
+
+    ptr->state = XBridgeTransactionDescr::trPending;
+    uiInterface.NotifyXBridgeTransactionStateChanged(ptr->id, XBridgeTransactionDescr::trPending);
+
+    return true;
 }
 
 //******************************************************************************

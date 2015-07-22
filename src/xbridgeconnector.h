@@ -43,6 +43,8 @@ public:
 
 private:
     CScript destination(const std::vector<unsigned char> & address);
+
+    bool sendPendingTransaction(XBridgeTransactionPtr & ptr);
     bool sendCancelTransaction(const uint256 & txid);
 
     std::string txToString(const CTransaction & tx) const;
