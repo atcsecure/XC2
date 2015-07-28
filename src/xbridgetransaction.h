@@ -22,8 +22,6 @@ struct XBridgeTransaction : public XBridgeTransactionDescr
     CTransaction               revTx;
 
     XBridgePacketPtr           packet;
-
-    // TODO add transaction state for gui
 };
 
 typedef boost::shared_ptr<XBridgeTransaction> XBridgeTransactionPtr;

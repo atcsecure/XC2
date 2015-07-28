@@ -9,6 +9,7 @@
 
 #include <QAbstractTableModel>
 #include <QStringList>
+#include <QTimer>
 
 #include <vector>
 #include <string>
@@ -18,6 +19,8 @@
 //******************************************************************************
 class XBridgeTransactionsModel : public QAbstractTableModel
 {
+    Q_OBJECT
+
 public:
     XBridgeTransactionsModel();
     ~XBridgeTransactionsModel();
@@ -57,6 +60,9 @@ public:
 
     XBridgeTransactionDescr item(const unsigned int index) const;
 
+private slots:
+    void onTimer();
+
 private:
     void onTransactionReceived(const XBridgeTransactionDescr & tx);
     void onTransactionIdChanged(const uint256 & id, const uint256 & newid);
@@ -68,6 +74,8 @@ private:
     QStringList m_columns;
 
     std::vector<XBridgeTransactionDescr> m_transactions;
+
+    QTimer m_timer;
 };
 
 #endif // XBRIDGETRANSACTIONSMODEL_H

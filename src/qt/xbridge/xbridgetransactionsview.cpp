@@ -152,7 +152,7 @@ void XBridgeTransactionsView::onCancelTransaction()
 
     if (QMessageBox::warning(this,
                              trUtf8("Cancel transaction"),
-                             trUtf8("Are you syre?"),
+                             trUtf8("Are you sure?"),
                              QMessageBox::Yes | QMessageBox::Cancel,
                              QMessageBox::Cancel) != QMessageBox::Yes)
     {

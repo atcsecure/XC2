@@ -46,7 +46,7 @@ XBridgeConnector::XBridgeConnector()
     m_processors[xbcTransactionRollback].bind(this, &XBridgeConnector::processTransactionRollback);
     // m_processors[xbcTransactionConfirm] .bind(this, &XBridgeConnector::processTransactionConfirm);
     m_processors[xbcTransactionFinished].bind(this, &XBridgeConnector::processTransactionFinished);
-    m_processors[xbcTransactionDropped] .bind(this, &XBridgeConnector::processTransactionCancel);
+    m_processors[xbcTransactionCancel]  .bind(this, &XBridgeConnector::processTransactionCancel);
     m_processors[xbcTransactionDropped] .bind(this, &XBridgeConnector::processTransactionDropped);
 }
 
@@ -239,6 +239,7 @@ uint256 XBridgeConnector::sendXBridgeTransaction(const std::vector<unsigned char
     ptr->to           = to;
     ptr->toCurrency   = toCurrency;
     ptr->toAmount     = toAmount;
+    ptr->txtime       = boost::posix_time::second_clock::universal_time();
 
     {
         boost::mutex::scoped_lock l(m_txLocker);
@@ -489,6 +490,7 @@ bool XBridgeConnector::processPendingTransaction(XBridgePacketPtr packet)
     d.toCurrency   = std::string(reinterpret_cast<const char *>(packet->data()+48));
     d.toAmount     = *reinterpret_cast<boost::uint64_t *>(packet->data()+56);
     d.state        = XBridgeTransactionDescr::trPending;
+    d.txtime       = boost::posix_time::second_clock::universal_time();
 
     uiInterface.NotifyXBridgePendingTransactionReceived(d);
 
@@ -585,6 +587,7 @@ bool XBridgeConnector::processTransactionInit(XBridgePacketPtr packet)
     ptr->to           = to;
     ptr->toCurrency   = toCurrency;
     ptr->toAmount     = toAmount;
+    ptr->txtime       = boost::posix_time::second_clock::universal_time();
 
     {
         boost::mutex::scoped_lock l(m_txLocker);
@@ -959,8 +962,8 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
 
         if (!m_transactions.count(txid))
         {
-            // wtf? unknown transaction
-            // TODO log
+            // signal for gui
+            uiInterface.NotifyXBridgeTransactionStateChanged(txid, XBridgeTransactionDescr::trFinished);
             return false;
         }
 
@@ -978,14 +981,14 @@ bool XBridgeConnector::processTransactionFinished(XBridgePacketPtr packet)
 //******************************************************************************
 bool XBridgeConnector::processTransactionCancel(XBridgePacketPtr packet)
 {
-    if (packet->size() != 52)
+    if (packet->size() != 32)
     {
         qDebug() << "incorrect packet size for xbcTransactionDropped" << __FUNCTION__;
         return false;
     }
 
     // transaction id
-    uint256 id(packet->data()+20);
+    uint256 id(packet->data());
 
     XBridgeTransactionPtr xtx;
     {
@@ -993,8 +996,8 @@ bool XBridgeConnector::processTransactionCancel(XBridgePacketPtr packet)
 
         if (!m_transactions.count(id))
         {
-            // wtf? unknown transaction
-            // TODO log
+            // signal for gui
+            uiInterface.NotifyXBridgeTransactionStateChanged(id, XBridgeTransactionDescr::trCancelled);
             return false;
         }
 
@@ -1065,8 +1068,8 @@ bool XBridgeConnector::processTransactionDropped(XBridgePacketPtr packet)
 
         if (!m_transactions.count(id))
         {
-            // wtf? unknown transaction
-            // TODO log
+            // signal for gui
+            uiInterface.NotifyXBridgeTransactionStateChanged(id, XBridgeTransactionDescr::trDropped);
             return false;
         }
 

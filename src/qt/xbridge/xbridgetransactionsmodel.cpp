@@ -5,6 +5,7 @@
 #include "xbridgeconnector.h"
 
 #include "../ui_interface.h"
+#include "../util/verify.h"
 
 //******************************************************************************
 //******************************************************************************
@@ -22,6 +23,9 @@ XBridgeTransactionsModel::XBridgeTransactionsModel()
 
     uiInterface.NotifyXBridgeTransactionIdChanged.connect
             (boost::bind(&XBridgeTransactionsModel::onTransactionIdChanged, this, _1, _2));
+
+    VERIFY(connect(&m_timer, SIGNAL(timeout()), this, SLOT(onTimer())));
+    m_timer.start(3000);
 }
 
 //******************************************************************************
@@ -180,6 +184,7 @@ bool XBridgeTransactionsModel::newTransaction(const std::vector<unsigned char> &
         d.toCurrency   = toCurrency;
         d.fromAmount   = (boost::uint64_t)(fromAmount * XBridgeTransactionDescr::COIN);
         d.toAmount     = (boost::uint64_t)(toAmount * XBridgeTransactionDescr::COIN);
+        d.txtime       = boost::posix_time::second_clock::universal_time();
 
         onTransactionReceived(d);
     }
@@ -211,6 +216,8 @@ bool XBridgeTransactionsModel::newTransactionFromPending(const uint256 & id,
             d.id = xbridge().sendXBridgeTransaction(d.from, d.fromCurrency, d.fromAmount,
                                                     d.to,   d.toCurrency,   d.toAmount);
 
+            d.txtime = boost::posix_time::second_clock::universal_time();
+
             break;
         }
     }
@@ -237,6 +244,23 @@ bool XBridgeTransactionsModel::cancelTransaction(const uint256 & id)
     }
 
     return false;
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionsModel::onTimer()
+{
+    for (unsigned int i = 0; i < m_transactions.size(); ++i)
+    {
+        boost::posix_time::time_duration td =
+                boost::posix_time::second_clock::universal_time() -
+                m_transactions[i].txtime;
+        if (td.total_seconds() > 60)
+        {
+            m_transactions[i].state = XBridgeTransactionDescr::trExpired;
+            emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
+        }
+    }
 }
 
 //******************************************************************************
@@ -325,6 +349,7 @@ QString XBridgeTransactionsModel::transactionState(const XBridgeTransactionDescr
         case XBridgeTransactionDescr::trCancelled: return trUtf8("Cancelled");
         case XBridgeTransactionDescr::trRollback:  return trUtf8("Rolled Back");
         case XBridgeTransactionDescr::trDropped:   return trUtf8("Dropped");
+        case XBridgeTransactionDescr::trExpired:   return trUtf8("Expired");
         default:                                   return trUtf8("Unknown");
     }
 }

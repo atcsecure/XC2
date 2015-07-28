@@ -5,6 +5,7 @@
 
 #include <string>
 #include <boost/cstdint.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 
 //******************************************************************************
 //******************************************************************************
@@ -28,7 +29,8 @@ struct XBridgeTransactionDescr
         trRollback,
         trDropped,
         trCancelled,
-        trInvalid
+        trInvalid,
+        trExpired
     };
 
     uint256                    id;
@@ -41,6 +43,8 @@ struct XBridgeTransactionDescr
     boost::uint64_t            toAmount;
 
     State                      state;
+
+    boost::posix_time::ptime   txtime;
 
     XBridgeTransactionDescr() : state(trNew) {}
 };
