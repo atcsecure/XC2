@@ -129,7 +129,7 @@ void XBridgeTransactionsView::onAcceptTransaction()
     }
 
     XBridgeTransactionDescr d = m_txModel.item(m_contextMenuIndex.row());
-    if (d.state == XBridgeTransactionDescr::trInvalid)
+    if (d.state != XBridgeTransactionDescr::trPending)
     {
         return;
     }
