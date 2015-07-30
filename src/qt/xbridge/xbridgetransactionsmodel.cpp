@@ -250,17 +250,17 @@ bool XBridgeTransactionsModel::cancelTransaction(const uint256 & id)
 //******************************************************************************
 void XBridgeTransactionsModel::onTimer()
 {
-    for (unsigned int i = 0; i < m_transactions.size(); ++i)
-    {
-        boost::posix_time::time_duration td =
-                boost::posix_time::second_clock::universal_time() -
-                m_transactions[i].txtime;
-        if (td.total_seconds() > 60)
-        {
-            m_transactions[i].state = XBridgeTransactionDescr::trExpired;
-            emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
-        }
-    }
+//    for (unsigned int i = 0; i < m_transactions.size(); ++i)
+//    {
+//        boost::posix_time::time_duration td =
+//                boost::posix_time::second_clock::universal_time() -
+//                m_transactions[i].txtime;
+//        if (td.total_seconds() > 60)
+//        {
+//            m_transactions[i].state = XBridgeTransactionDescr::trExpired;
+//            emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
+//        }
+//    }
 }
 
 //******************************************************************************
