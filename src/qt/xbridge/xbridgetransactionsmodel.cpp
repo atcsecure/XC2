@@ -7,11 +7,14 @@
 #include "../ui_interface.h"
 #include "../util/verify.h"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 //******************************************************************************
 //******************************************************************************
 XBridgeTransactionsModel::XBridgeTransactionsModel()
 {
-    m_columns << trUtf8("From") << trUtf8("Amount")
+    m_columns << trUtf8("Created")
+              << trUtf8("From") << trUtf8("Amount")
               << trUtf8("To") << trUtf8("Amount")
               << trUtf8("State");
 
@@ -77,6 +80,12 @@ QVariant XBridgeTransactionsModel::data(const QModelIndex & idx, int role) const
     {
         switch (idx.column())
         {
+            case CreationDate:
+            {
+                std::ostringstream o;
+                o << d.created;
+                return QVariant(QString::fromStdString(o.str()));
+            }
             case AddressFrom:
             {
                 QString text;
@@ -293,8 +302,9 @@ void XBridgeTransactionsModel::onTransactionReceived(const XBridgeTransactionDes
         return;
     }
 
-    emit beginInsertRows(QModelIndex(), m_transactions.size(), m_transactions.size());
-    m_transactions.push_back(tx);
+    emit beginInsertRows(QModelIndex(), 0, 0);
+    m_transactions.insert(m_transactions.begin(), 1, tx);
+    // std::sort(m_transactions.begin(), m_transactions.end(), std::greater<XBridgeTransactionDescr>());
     emit endInsertRows();
 }
 

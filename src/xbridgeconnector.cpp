@@ -239,7 +239,6 @@ uint256 XBridgeConnector::sendXBridgeTransaction(const std::vector<unsigned char
     ptr->to           = to;
     ptr->toCurrency   = toCurrency;
     ptr->toAmount     = toAmount;
-    ptr->txtime       = boost::posix_time::second_clock::universal_time();
 
     {
         boost::mutex::scoped_lock l(m_txLocker);
@@ -490,7 +489,6 @@ bool XBridgeConnector::processPendingTransaction(XBridgePacketPtr packet)
     d.toCurrency   = std::string(reinterpret_cast<const char *>(packet->data()+48));
     d.toAmount     = *reinterpret_cast<boost::uint64_t *>(packet->data()+56);
     d.state        = XBridgeTransactionDescr::trPending;
-    d.txtime       = boost::posix_time::second_clock::universal_time();
 
     uiInterface.NotifyXBridgePendingTransactionReceived(d);
 
@@ -587,7 +585,6 @@ bool XBridgeConnector::processTransactionInit(XBridgePacketPtr packet)
     ptr->to           = to;
     ptr->toCurrency   = toCurrency;
     ptr->toAmount     = toAmount;
-    ptr->txtime       = boost::posix_time::second_clock::universal_time();
 
     {
         boost::mutex::scoped_lock l(m_txLocker);

@@ -9,6 +9,7 @@
 
 #include <QWidget>
 #include <QMenu>
+#include <QSortFilterProxyModel>
 
 class QTableView;
 
@@ -39,6 +40,8 @@ private slots:
 
 private:
     XBridgeTransactionsModel m_txModel;
+    QSortFilterProxyModel    m_proxy;
+
     XBridgeTransactionDialog m_dlg;
 
     QTableView  * m_transactionsList;

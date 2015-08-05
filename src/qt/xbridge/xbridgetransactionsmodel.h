@@ -27,13 +27,14 @@ public:
 
     enum ColumnIndex
     {
-        AddressFrom = 0,
-        FirstColumn = AddressFrom,
-        AmountFrom  = 1,
-        AddressTo   = 2,
-        AmountTo    = 3,
-        State       = 4,
-        LastColumn  = State
+        CreationDate = 0,
+        FirstColumn  = CreationDate,
+        AddressFrom  = 1,
+        AmountFrom   = 2,
+        AddressTo    = 3,
+        AmountTo     = 4,
+        State        = 5,
+        LastColumn   = State
     };
 
 public:

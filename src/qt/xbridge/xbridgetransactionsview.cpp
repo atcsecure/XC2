@@ -34,9 +34,15 @@ void XBridgeTransactionsView::setupUi()
 {
     QVBoxLayout * vbox = new QVBoxLayout;
 
+    m_proxy.setSourceModel(&m_txModel);
+    m_proxy.setDynamicSortFilter(true);
+
     m_transactionsList = new QTableView(this);
-    m_transactionsList->setModel(&m_txModel);
+    m_transactionsList->setModel(&m_proxy);
     m_transactionsList->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_transactionsList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_transactionsList->setSortingEnabled(true);
+
     VERIFY(connect(m_transactionsList, SIGNAL(customContextMenuRequested(QPoint)),
                    this,               SLOT(onContextMenu(QPoint))));
 
