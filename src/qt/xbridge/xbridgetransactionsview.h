@@ -7,6 +7,8 @@
 #include "xbridge/xbridgetransactionsmodel.h"
 #include "xbridge/xbridgetransactiondialog.h"
 
+#include "../walletmodel.h"
+
 #include <QWidget>
 #include <QMenu>
 #include <QSortFilterProxyModel>
@@ -21,6 +23,9 @@ class XBridgeTransactionsView : public QWidget
 public:
     explicit XBridgeTransactionsView(QWidget *parent = 0);
     ~XBridgeTransactionsView();
+
+public:
+    void setWalletModel(WalletModel * model);
 
 signals:
 
@@ -39,6 +44,8 @@ private slots:
     void onContextMenu(QPoint pt);
 
 private:
+    WalletModel            * m_walletModel;
+
     XBridgeTransactionsModel m_txModel;
     QSortFilterProxyModel    m_proxy;
 

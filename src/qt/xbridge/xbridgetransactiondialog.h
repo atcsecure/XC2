@@ -6,6 +6,8 @@
 
 #include "xbridge/xbridgetransactionsmodel.h"
 
+#include "../walletmodel.h"
+
 #include <QDialog>
 #include <QStringList>
 #include <QStringListModel>
@@ -25,6 +27,9 @@ public:
     explicit XBridgeTransactionDialog(XBridgeTransactionsModel & model, QWidget *parent = 0);
     ~XBridgeTransactionDialog();
 
+public:
+    void setWalletModel(WalletModel * model);
+
     void setPendingId(const uint256 & id);
     void setFromAmount(double amount);
     void setToAmount(double amount);
@@ -41,7 +46,14 @@ private slots:
     void onWalletListReceivedHandler(const QStringList & wallets);
     void onSendTransaction();
 
+    void onPasteFrom();
+    void onAddressBookFrom();
+    void onPasteTo();
+    void onAddressBookTo();
+
 private:
+    WalletModel              * m_walletModel;
+
     XBridgeTransactionsModel & m_model;
 
     uint256        m_pendingId;

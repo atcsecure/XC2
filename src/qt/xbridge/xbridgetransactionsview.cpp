@@ -16,6 +16,7 @@
 //******************************************************************************
 XBridgeTransactionsView::XBridgeTransactionsView(QWidget *parent)
     : QWidget(parent)
+    , m_walletModel(0)
     , m_dlg(m_txModel)
 {
     setupUi();
@@ -26,6 +27,14 @@ XBridgeTransactionsView::XBridgeTransactionsView(QWidget *parent)
 XBridgeTransactionsView::~XBridgeTransactionsView()
 {
 
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionsView::setWalletModel(WalletModel * model)
+{
+    m_walletModel = model;
+    m_dlg.setWalletModel(model);
 }
 
 //******************************************************************************

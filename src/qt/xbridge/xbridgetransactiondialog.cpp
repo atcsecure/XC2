@@ -5,6 +5,7 @@
 #include "../ui_interface.h"
 #include "../xbridgeconnector.h"
 #include "../util/verify.h"
+#include "../addressbookpage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -14,6 +15,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QApplication>
+#include <QClipboard>
 
 const QString testFrom("2J3u4r9D+pNS6ZPNMYR1tgl+wVI=");
 const QString testTo("BWU9J85uL4242RnXXhZfRdA8p9s=");
@@ -27,6 +30,7 @@ const QString testToAmount("0.002");
 XBridgeTransactionDialog::XBridgeTransactionDialog(XBridgeTransactionsModel & model,
                                                    QWidget *parent)
     : QDialog(parent)
+    , m_walletModel(0)
     , m_model(model)
 {
     setupUI();
@@ -47,6 +51,13 @@ XBridgeTransactionDialog::XBridgeTransactionDialog(XBridgeTransactionsModel & mo
 XBridgeTransactionDialog::~XBridgeTransactionDialog()
 {
     m_walletsNotifier.disconnect();
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::setWalletModel(WalletModel * model)
+{
+    m_walletModel = model;
 }
 
 //******************************************************************************
@@ -88,6 +99,10 @@ void XBridgeTransactionDialog::setToCurrency(const QString & currency)
 //******************************************************************************
 void XBridgeTransactionDialog::setupUI()
 {
+//    QRect r = geometry();
+//    r.setWidth(qApp->activeWindow()->width());
+//    setGeometry(r);
+
     QGridLayout * grid = new QGridLayout;
 
     QLabel * l = new QLabel(QString::fromStdString(xbridge().xbridgeAddressAndPort()), this);
@@ -101,26 +116,73 @@ void XBridgeTransactionDialog::setupUI()
 
     m_addressFrom = new QLineEdit(this);
     m_addressFrom->setText(testFrom);
-    grid->addWidget(m_addressFrom, 2, 0, 1, 2);
+    m_addressFrom->setMinimumWidth(300);
+    m_addressFrom->setReadOnly(true);
+    m_addressFrom->setToolTip(trUtf8("Input source address"));
+    // grid->addWidget(m_addressFrom, 2, 0, 1, 1);
+
+    QPushButton * pasteFrom = new QPushButton(this);
+    pasteFrom->setIcon(QIcon(":/icons/editpaste"));
+    pasteFrom->setToolTip(trUtf8("Paste source address"));
+    VERIFY(connect(pasteFrom, SIGNAL(clicked()), this, SLOT(onPasteFrom())));
+
+    QPushButton * abFrom = new QPushButton(this);
+    abFrom->setIcon(QIcon(":/icons/address-book"));
+    abFrom->setToolTip(trUtf8("Show address book"));
+    VERIFY(connect(abFrom, SIGNAL(clicked()), this, SLOT(onAddressBookFrom())));
+
+    QHBoxLayout * hbox = new QHBoxLayout;
+    hbox->addWidget(m_addressFrom);
+    hbox->addWidget(pasteFrom);
+    hbox->addWidget(abFrom);
+
+    grid->addLayout(hbox, 2, 0, 1, 2);
 
     m_addressTo = new QLineEdit(this);
     m_addressTo->setText(testTo);
-    grid->addWidget(m_addressTo, 2, 3, 1, 2);
+    m_addressTo->setMinimumWidth(300);
+    m_addressTo->setReadOnly(true);
+    m_addressTo->setToolTip(trUtf8("Input destination address"));
+    // grid->addWidget(m_addressTo, 2, 3, 1, 1);
+
+    QPushButton * pasteTo = new QPushButton(this);
+    pasteTo->setIcon(QIcon("://icons/editpaste"));
+    pasteTo->setToolTip(trUtf8("Paste destination address"));
+    VERIFY(connect(pasteTo, SIGNAL(clicked()), this, SLOT(onPasteTo())));
+
+    QPushButton * abTo = new QPushButton(this);
+    abTo->setIcon(QIcon(":/icons/address-book"));
+    abTo->setToolTip(trUtf8("Show address book"));
+    abTo->setEnabled(false);
+    VERIFY(connect(abTo, SIGNAL(clicked()), this, SLOT(onAddressBookTo())));
+
+    hbox = new QHBoxLayout;
+    hbox->addWidget(m_addressTo);
+    hbox->addWidget(pasteTo);
+    hbox->addWidget(abTo);
+
+    grid->addLayout(hbox, 2, 3, 1, 2);
 
     m_amountFrom = new QLineEdit(this);
     m_amountFrom->setText(testFromAmount);
+    m_amountFrom->setToolTip(trUtf8("Source amount"));
     grid->addWidget(m_amountFrom, 3, 0, 1, 1);
 
     m_currencyFrom = new QComboBox(this);
     m_currencyFrom->setModel(&m_thisWalletsModel);
+    m_currencyFrom->setFixedWidth(72);
+    m_currencyFrom->setToolTip(trUtf8("Source currency"));
     grid->addWidget(m_currencyFrom, 3, 1, 1, 1);
 
     m_amountTo = new QLineEdit(this);
     m_amountTo->setText(testToAmount);
+    m_amountTo->setToolTip(trUtf8("Destination amount"));
     grid->addWidget(m_amountTo, 3, 3, 1, 1);
 
     m_currencyTo = new QComboBox(this);
     m_currencyTo->setModel(&m_walletsModel);
+    m_currencyTo->setFixedWidth(72);
+    m_currencyTo->setToolTip(trUtf8("Destination currency"));
     grid->addWidget(m_currencyTo, 3, 4, 1, 1);
 
     l = new QLabel(trUtf8(" --- >>> "), this);
@@ -131,7 +193,7 @@ void XBridgeTransactionDialog::setupUI()
 
     QPushButton * cancel = new QPushButton(trUtf8("Cancel"), this);
 
-    QHBoxLayout * hbox = new QHBoxLayout;
+    hbox = new QHBoxLayout;
     hbox->addStretch();
     hbox->addWidget(m_btnSend);
     hbox->addWidget(cancel);
@@ -218,4 +280,51 @@ void XBridgeTransactionDialog::onSendTransaction()
     }
 
     accept();
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::onPasteFrom()
+{
+    m_addressFrom->setText(QApplication::clipboard()->text());
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::onAddressBookFrom()
+{
+    if (!m_walletModel)
+    {
+        return;
+    }
+
+    AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::ReceivingTab, this);
+    dlg.setModel(m_walletModel->getAddressTableModel());
+    if (dlg.exec())
+    {
+        std::vector<unsigned char> tmp;
+        DecodeBase58Check(dlg.getReturnValue().toStdString(), tmp);
+        if (tmp.empty())
+        {
+            QMessageBox::warning(this, "", trUtf8("Error decode address"));
+            return;
+        }
+
+        m_addressFrom->setText(QString::fromStdString(EncodeBase64(&tmp[1], tmp.size()-1)));
+        m_addressFrom->setFocus();
+    }
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::onPasteTo()
+{
+    m_addressTo->setText(QApplication::clipboard()->text());
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeTransactionDialog::onAddressBookTo()
+{
+
 }
