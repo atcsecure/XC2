@@ -1792,11 +1792,15 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64 nVal
 
 
 
-
+//*****************************************************************************
+//*****************************************************************************
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {
     if (!fFileBacked)
+    {
         return DB_LOAD_OK;
+    }
+
     fFirstRunRet = false;
     DBErrors nLoadWalletRet = CWalletDB(strWalletFile,"cr+").LoadWallet(this);
     if (nLoadWalletRet == DB_NEED_REWRITE)
@@ -1811,14 +1815,20 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     }
 
     if (nLoadWalletRet != DB_LOAD_OK)
+    {
         return nLoadWalletRet;
+    }
+
     fFirstRunRet = !vchDefaultKey.IsValid();
 
     NewThread(ThreadFlushWalletDB, &strWalletFile);
+
+
     return DB_LOAD_OK;
 }
 
-
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::SetAddressBookName(const CTxDestination& address, const string& strName)
 {
     std::map<CTxDestination, std::string>::iterator mi = mapAddressBook.find(address);

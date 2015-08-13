@@ -5,6 +5,7 @@
 #define XBRIDGETRANSACTIONDIALOG_H
 
 #include "xbridge/xbridgetransactionsmodel.h"
+#include "xbridge/xbridgeaddressbookview.h"
 
 #include "../walletmodel.h"
 
@@ -65,6 +66,8 @@ private:
     QComboBox    * m_currencyFrom;
     QComboBox    * m_currencyTo;
     QPushButton  * m_btnSend;
+
+    XBridgeAddressBookView m_addressBook;
 
     QStringList      m_thisWallets;
     QStringListModel m_thisWalletsModel;

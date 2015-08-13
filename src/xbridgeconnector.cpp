@@ -48,6 +48,32 @@ XBridgeConnector::XBridgeConnector()
     m_processors[xbcTransactionFinished].bind(this, &XBridgeConnector::processTransactionFinished);
     m_processors[xbcTransactionCancel]  .bind(this, &XBridgeConnector::processTransactionCancel);
     m_processors[xbcTransactionDropped] .bind(this, &XBridgeConnector::processTransactionDropped);
+
+    m_processors[xbcAddressBookEntry]   .bind(this, &XBridgeConnector::processAddressBookEntry);
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void XBridgeConnector::onConnected()
+{
+    LOCK(pwalletMain->cs_wallet);
+    BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& item, pwalletMain->mapAddressBook)
+    {
+        const CBitcoinAddress & address = item.first;
+        const std::string & strName = item.second;
+        bool fMine = IsMine(*pwalletMain, address.Get());
+        if (fMine)
+        {
+            std::vector<unsigned char> tmp;
+            DecodeBase58Check(address.ToString(), tmp);
+            if (tmp.empty())
+            {
+                continue;
+            }
+
+            sendAddressBookEntry(thisCurrency(), strName, EncodeBase64(&tmp[1], tmp.size()-1));
+        }
+    }
 }
 
 //*****************************************************************************
@@ -123,6 +149,14 @@ bool XBridgeConnector::processXChatMessage(XBridgePacketPtr packet)
     }
 
     return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+// static
+std::string XBridgeConnector::thisCurrency()
+{
+    return "XC";
 }
 
 //******************************************************************************
@@ -337,6 +371,26 @@ bool XBridgeConnector::transactionReceived(const uint256 & hash)
 std::vector<std::pair<std::string, std::string> > XBridgeConnector::wallets() const
 {
     return m_receivedWallets;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::sendAddressBookEntry(const std::string & currency,
+                                            const std::string & name,
+                                            const std::string & address)
+{
+    XBridgePacket p(xbcAddressBookEntry);
+    p.append(currency);
+    p.append(name);
+    p.append(address);
+
+    if (!sendPacket(p))
+    {
+        qDebug() << "send addressbook entry error " << __FUNCTION__;
+        return false;
+    }
+
+    return true;
 }
 
 //******************************************************************************
@@ -1076,6 +1130,19 @@ bool XBridgeConnector::processTransactionDropped(XBridgePacketPtr packet)
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trDropped;
     uiInterface.NotifyXBridgeTransactionStateChanged(id, xtx->state);
+
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::processAddressBookEntry(XBridgePacketPtr packet)
+{
+    std::string currency(reinterpret_cast<const char *>(packet->data()));
+    std::string name(reinterpret_cast<const char *>(packet->data()+currency.length()+1));
+    std::string address(reinterpret_cast<const char *>(packet->data()+currency.length()+name.length()+2));
+
+    uiInterface.NotifyXBridgeAddressBookEntryReceived(currency, name, address);
 
     return true;
 }

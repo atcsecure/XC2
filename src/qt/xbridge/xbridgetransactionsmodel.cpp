@@ -43,7 +43,7 @@ XBridgeTransactionsModel::~XBridgeTransactionsModel()
 // static
 QString XBridgeTransactionsModel::thisCurrency()
 {
-    return "XC";
+    return QString::fromStdString(xbridge().thisCurrency());
 }
 
 //******************************************************************************

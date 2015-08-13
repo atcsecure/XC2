@@ -124,6 +124,13 @@ public:
      * @brief NotifyXBridgeTransactionStateChanged
      */
     boost::signals2::signal<void (const uint256 & id, const unsigned int state)> NotifyXBridgeTransactionStateChanged;
+
+    /**
+     * @brief NotifyXBridgeAddressBookEntryReceived
+     */
+    boost::signals2::signal<void (const std::string & currency,
+                                  const std::string & name,
+                                  const std::string & address)> NotifyXBridgeAddressBookEntryReceived;
 };
 
 extern CClientUIInterface uiInterface;

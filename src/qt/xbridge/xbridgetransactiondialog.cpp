@@ -153,7 +153,6 @@ void XBridgeTransactionDialog::setupUI()
     QPushButton * abTo = new QPushButton(this);
     abTo->setIcon(QIcon(":/icons/address-book"));
     abTo->setToolTip(trUtf8("Show address book"));
-    abTo->setEnabled(false);
     VERIFY(connect(abTo, SIGNAL(clicked()), this, SLOT(onAddressBookTo())));
 
     hbox = new QHBoxLayout;
@@ -326,5 +325,5 @@ void XBridgeTransactionDialog::onPasteTo()
 //******************************************************************************
 void XBridgeTransactionDialog::onAddressBookTo()
 {
-
+    m_addressBook.show();
 }

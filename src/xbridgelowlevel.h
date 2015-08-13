@@ -38,6 +38,7 @@ private:
 
     void disconnect();
 
+    virtual void onConnected() = 0;
     void onTimer();
     virtual void handleTimer() = 0;
 

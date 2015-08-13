@@ -22,9 +22,12 @@ private:
     XBridgeConnector();
 
 private:
+    virtual void onConnected();
     virtual void handleTimer();
 
 public:
+    static std::string thisCurrency();
+
     bool announceLocalAddresses();
     bool sendXChatMessage(const Message & m);
 
@@ -40,6 +43,10 @@ public:
     bool transactionReceived(const uint256 & hash);
 
     std::vector<std::pair<std::string, std::string> > wallets() const;
+
+    bool sendAddressBookEntry(const std::string & currency,
+                              const std::string & name,
+                              const std::string & address);
 
 private:
     CScript destination(const std::vector<unsigned char> & address);
@@ -67,6 +74,8 @@ private:
     bool processTransactionCancel(XBridgePacketPtr packet);
     bool processTransactionRollback(XBridgePacketPtr packet);
     bool processTransactionDropped(XBridgePacketPtr packet);
+
+    bool processAddressBookEntry(XBridgePacketPtr packet);
 
 private:
     boost::mutex                             m_txLocker;

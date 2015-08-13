@@ -2,8 +2,8 @@
 //******************************************************************************
 
 #include "xbridgelowlevel.h"
-
 #include "util.h"
+#include "ui_interface.h"
 
 // TODO remove
 #include <QDebug>
@@ -66,6 +66,7 @@ void XBridgeLowLevel::onTimer()
         m_socket.connect(ep, error);
         if (!error)
         {
+            onConnected();
             doReadHeader(XBridgePacketPtr(new XBridgePacket));
         }
         else

@@ -255,7 +255,9 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/xbridge/xbridgetransactionsmodel.h \
     src/qt/xbridge/xbridgetransactionsview.h \
     src/xbridgetransactiondescr.h \
-    src/qt/xbridge/xbridgetransactiondialog.h
+    src/qt/xbridge/xbridgetransactiondialog.h \
+    src/qt/xbridge/xbridgeaddressbookview.h \
+    src/qt/xbridge/xbridgeaddressbookmodel.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -346,7 +348,9 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/xbridgelowlevel.cpp \
     src/qt/xbridge/xbridgetransactionsmodel.cpp \
     src/qt/xbridge/xbridgetransactionsview.cpp \
-    src/qt/xbridge/xbridgetransactiondialog.cpp
+    src/qt/xbridge/xbridgetransactiondialog.cpp \
+    src/qt/xbridge/xbridgeaddressbookview.cpp \
+    src/qt/xbridge/xbridgeaddressbookmodel.cpp
 
 RESOURCES += \
     src/qt/bitcoin.qrc
