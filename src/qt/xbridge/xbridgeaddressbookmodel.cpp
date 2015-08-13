@@ -95,6 +95,18 @@ QVariant XBridgeAddressBookModel::headerData(int section, Qt::Orientation orient
 
 //******************************************************************************
 //******************************************************************************
+XBridgeAddressBookModel::AddressBookEntry XBridgeAddressBookModel::entry(const int row)
+{
+    if (row < 0 || row >= m_addressBook.size())
+    {
+        return AddressBookEntry();
+    }
+
+    return m_addressBook[row];
+}
+
+//******************************************************************************
+//******************************************************************************
 void XBridgeAddressBookModel::onAddressBookEntryReceived(const std::string & currency,
                                                          const std::string & name,
                                                          const std::string & address)
@@ -104,7 +116,7 @@ void XBridgeAddressBookModel::onAddressBookEntryReceived(const std::string & cur
         return;
     }
 
-    // m_addresses.insert(address);
+    m_addresses.insert(address);
 
     emit beginInsertRows(QModelIndex(), m_addressBook.size(), m_addressBook.size());
     m_addressBook.push_back(std::make_tuple(currency, address, name));

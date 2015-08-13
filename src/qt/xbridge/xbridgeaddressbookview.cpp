@@ -2,6 +2,7 @@
 //******************************************************************************
 
 #include "xbridgeaddressbookview.h"
+#include "../util/verify.h"
 
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -23,11 +24,22 @@ XBridgeAddressBookView::~XBridgeAddressBookView()
 
 //******************************************************************************
 //******************************************************************************
+void XBridgeAddressBookView::onAddressSelect(QModelIndex index)
+{
+    m_selectedAddress = std::get<XBridgeAddressBookModel::Address>(m_model.entry(index.row()));
+    accept();
+}
+
+//******************************************************************************
+//******************************************************************************
 void XBridgeAddressBookView::setupUi()
 {
     m_entryList = new QTableView(this);
     m_entryList->setModel(&m_model);
     m_entryList->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    VERIFY(connect(m_entryList, SIGNAL(doubleClicked(QModelIndex)),
+                   this,        SLOT(onAddressSelect(QModelIndex))));
 
 //    QHeaderView * header = m_entryList->horizontalHeader();
 //#if QT_VERSION <0x050000

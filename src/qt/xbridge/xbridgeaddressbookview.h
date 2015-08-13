@@ -18,14 +18,18 @@ public:
     explicit XBridgeAddressBookView(QWidget *parent = 0);
     ~XBridgeAddressBookView();
 
-signals:
+    std::string selectedAddress() const { return m_selectedAddress; }
 
-public slots:
+
+private slots:
+    void onAddressSelect(QModelIndex index);
 
 private:
     void setupUi();
 
 private:
+    std::string m_selectedAddress;
+
     XBridgeAddressBookModel m_model;
 
     QTableView  * m_entryList;

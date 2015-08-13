@@ -21,6 +21,8 @@ LIBS += \
     $$join(OPENSSL_LIB_PATH,,-L,) \
     $$join(QRENCODE_LIB_PATH,,-L,)
 
+QMAKE_CXXFLAGS += -std=c++11
+
 LIBS += \
     -lssl \
     -lcrypto \

@@ -325,5 +325,9 @@ void XBridgeTransactionDialog::onPasteTo()
 //******************************************************************************
 void XBridgeTransactionDialog::onAddressBookTo()
 {
-    m_addressBook.show();
+    if (m_addressBook.exec() == QDialog::Accepted)
+    {
+        QString address = QString::fromStdString(m_addressBook.selectedAddress());
+        m_addressTo->setText(address);
+    }
 }

@@ -22,12 +22,15 @@ public:
     XBridgeAddressBookModel();
     ~XBridgeAddressBookModel();
 
+    typedef std::tuple<std::string, std::string, std::string> AddressBookEntry;
+    typedef std::vector<AddressBookEntry> AddressBook;
+
     enum ColumnIndex
     {
         Currency     = 0,
         FirstColumn  = Currency,
         Name         = 1,
-        Address      = 3,
+        Address      = 2,
         LastColumn   = Address
     };
 
@@ -35,6 +38,8 @@ public:
     virtual int      columnCount(const QModelIndex &) const;
     virtual QVariant data(const QModelIndex & idx, int role) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
+    AddressBookEntry entry(const int row);
 
 private:
     void onAddressBookEntryReceived(const std::string & currency,
@@ -45,8 +50,6 @@ private:
     QStringList m_columns;
 
     std::set<std::string> m_addresses;
-    typedef std::tuple<std::string, std::string, std::string> AddressBookEntry;
-    typedef std::vector<AddressBookEntry> AddressBook;
     AddressBook m_addressBook;
 };
 
