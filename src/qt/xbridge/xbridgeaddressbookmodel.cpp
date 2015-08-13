@@ -58,17 +58,17 @@ QVariant XBridgeAddressBookModel::data(const QModelIndex & idx, int role) const
         {
             case Currency:
             {
-                QString text = QString::fromStdString(std::get<0>(m_addressBook[idx.column()]));
+                QString text = QString::fromStdString(std::get<0>(m_addressBook[idx.row()]));
                 return QVariant(text);
             }
             case Name:
             {
-                QString text = QString::fromStdString(std::get<2>(m_addressBook[idx.column()]));
+                QString text = QString::fromStdString(std::get<2>(m_addressBook[idx.row()]));
                 return QVariant(text);
             }
             case Address:
             {
-                QString text = QString::fromStdString(std::get<1>(m_addressBook[idx.column()]));
+                QString text = QString::fromStdString(std::get<1>(m_addressBook[idx.row()]));
                 return QVariant(text);
             }
             default:
