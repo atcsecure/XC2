@@ -58,17 +58,17 @@ QVariant XBridgeAddressBookModel::data(const QModelIndex & idx, int role) const
         {
             case Currency:
             {
-                QString text = QString::fromStdString(std::get<0>(m_addressBook[idx.row()]));
+                QString text = QString::fromStdString(std::get<Currency>(m_addressBook[idx.row()]));
                 return QVariant(text);
             }
             case Name:
             {
-                QString text = QString::fromStdString(std::get<2>(m_addressBook[idx.row()]));
+                QString text = QString::fromStdString(std::get<Name>(m_addressBook[idx.row()]));
                 return QVariant(text);
             }
             case Address:
             {
-                QString text = QString::fromStdString(std::get<1>(m_addressBook[idx.row()]));
+                QString text = QString::fromStdString(std::get<Address>(m_addressBook[idx.row()]));
                 return QVariant(text);
             }
             default:
@@ -119,6 +119,6 @@ void XBridgeAddressBookModel::onAddressBookEntryReceived(const std::string & cur
     m_addresses.insert(address);
 
     emit beginInsertRows(QModelIndex(), m_addressBook.size(), m_addressBook.size());
-    m_addressBook.push_back(std::make_tuple(currency, address, name));
+    m_addressBook.push_back(std::make_tuple(currency, name, address));
     emit endInsertRows();
 }
