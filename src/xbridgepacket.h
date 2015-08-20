@@ -13,6 +13,10 @@
 
 //******************************************************************************
 //******************************************************************************
+#define XBRIDGE_PROTOCOL_VERSION 0xff000001
+
+//******************************************************************************
+//******************************************************************************
 enum XBridgeCommand
 {
     xbcInvalid = 0,
@@ -210,6 +214,17 @@ enum XBridgeCommand
 typedef boost::uint32_t crc_t;
 
 //******************************************************************************
+// header 8*4 bytes
+//
+// boost::uint32_t version
+// boost::uint32_t command
+// boost::uint32_t timestamp
+// boost::uint32_t size
+// boost::uint32_t crc
+//
+// boost::uint32_t rezerved
+// boost::uint32_t rezerved
+// boost::uint32_t rezerved
 //******************************************************************************
 class XBridgePacket
 {
@@ -218,8 +233,8 @@ class XBridgePacket
 public:
     enum
     {
-        headerSize = 3*sizeof(boost::uint32_t),
-        commandSize = sizeof(boost::uint32_t),
+        headerSize    = 8*sizeof(boost::uint32_t),
+        commandSize   = sizeof(boost::uint32_t),
         timestampSize = sizeof(boost::uint32_t)
     };
 
@@ -234,14 +249,16 @@ public:
         // return crcField();
     }
 
-    XBridgeCommand command() const       { return static_cast<XBridgeCommand>(commandField()); }
+    boost::uint32_t version() const       { return versionField(); }
 
-    void    alloc()                      { m_body.resize(headerSize + size()); }
+    XBridgeCommand  command() const       { return static_cast<XBridgeCommand>(commandField()); }
+
+    void    alloc()                       { m_body.resize(headerSize + size()); }
 
     const std::vector<unsigned char> & body() const
-                                         { return m_body; }
-    unsigned char  * header()            { return &m_body[0]; }
-    unsigned char  * data()              { return &m_body[headerSize]; }
+                                          { return m_body; }
+    unsigned char  * header()             { return &m_body[0]; }
+    unsigned char  * data()               { return &m_body[headerSize]; }
 
     // boost::int32_t int32Data() const { return field32<2>(); }
 
@@ -356,6 +373,7 @@ public:
 
     XBridgePacket() : m_body(headerSize, 0)
     {
+        versionField()   = static_cast<boost::uint32_t>(XBRIDGE_PROTOCOL_VERSION);
         timestampField() = static_cast<boost::uint32_t>(time(0));
     }
 
@@ -371,7 +389,8 @@ public:
 
     XBridgePacket(XBridgeCommand c) : m_body(headerSize, 0)
     {
-        commandField() = static_cast<boost::uint32_t>(c);
+        versionField()   = static_cast<boost::uint32_t>(XBRIDGE_PROTOCOL_VERSION);
+        commandField()   = static_cast<boost::uint32_t>(c);
         timestampField() = static_cast<boost::uint32_t>(time(0));
     }
 
@@ -391,16 +410,16 @@ private:
     boost::uint32_t const& field32() const
         { return *static_cast<boost::uint32_t const*>(static_cast<void const*>(&m_body[INDEX * 4])); }
 
-    boost::uint32_t &       commandField()         { return field32<0>(); }
-    boost::uint32_t const & commandField() const   { return field32<0>(); }
-    boost::uint32_t &       timestampField()       { return field32<1>(); }
-    boost::uint32_t const & timestampField() const { return field32<1>(); }
-    boost::uint32_t &       sizeField()            { return field32<2>(); }
-    boost::uint32_t const & sizeField() const      { return field32<2>(); }
-
-    // TODO implement this
-//    boost::uint32_t &       crcField()           { return field32<0>(); }
-//    boost::uint32_t const & crcField() const     { return field32<0>(); }
+    boost::uint32_t       & versionField()         { return field32<0>(); }
+    boost::uint32_t const & versionField() const   { return field32<0>(); }
+    boost::uint32_t &       commandField()         { return field32<1>(); }
+    boost::uint32_t const & commandField() const   { return field32<1>(); }
+    boost::uint32_t &       timestampField()       { return field32<2>(); }
+    boost::uint32_t const & timestampField() const { return field32<2>(); }
+    boost::uint32_t &       sizeField()            { return field32<3>(); }
+    boost::uint32_t const & sizeField() const      { return field32<3>(); }
+    boost::uint32_t &       crcField()             { return field32<4>(); }
+    boost::uint32_t const & crcField() const       { return field32<4>(); }
 };
 
 typedef boost::shared_ptr<XBridgePacket> XBridgePacketPtr;
