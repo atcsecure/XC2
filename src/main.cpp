@@ -3177,6 +3177,24 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             // Track requests for our stuff
             Inventory(inv.hash);
         }
+
+        // for xbridge
+        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
+        {
+            const CInv & inv = vInv[nInv];
+            if (inv.type == MSG_BLOCK)
+            {
+                // TODO
+            }
+            else if (inv.type == MSG_TX)
+            {
+                xbridge().transactionReceived(inv.hash);
+            }
+            else
+            {
+                assert(false);
+            }
+        }
     }
 
 
