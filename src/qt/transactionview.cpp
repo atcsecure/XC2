@@ -548,13 +548,20 @@ std::pair<QString, TransactionRecord::Type> TransactionView::currentTxIdAndType(
 //******************************************************************************
 void TransactionView::rollbackTx()
 {
+    if (QMessageBox::warning(this,
+                             trUtf8("Rollback transaction"),
+                             trUtf8("Are you sure?"),
+                             QMessageBox::Yes | QMessageBox::Cancel,
+                             QMessageBox::Cancel) != QMessageBox::Yes)
+    {
+        return;
+    }
+
     std::pair<QString, TransactionRecord::Type> pair = currentTxIdAndType();
     QString txid = pair.first;
     if (txid.size())
     {
         uint256 hash(txid.toLocal8Bit().data());
         xbridge().rollbackTransaction(hash);
-
-        // QMessageBox::information(this, "", txid);
     }
 }
