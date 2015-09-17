@@ -48,6 +48,9 @@ public:
                               const std::string & name,
                               const std::string & address);
 
+    bool haveTransactionForRollback(const uint256 & walletTxId);
+    bool rollbackTransaction(const uint256 & walletTxId);
+
 private:
     CScript destination(const std::vector<unsigned char> & address);
 
@@ -81,6 +84,9 @@ private:
     boost::mutex                             m_txLocker;
     std::map<uint256, XBridgeTransactionPtr> m_pendingTransactions;
     std::map<uint256, XBridgeTransactionPtr> m_transactions;
+
+    // map wallet tx id after commit to xbridge tx structure for search
+    std::map<uint256, uint256>               m_mapWalletTxToXBridgeTx;
 
     std::vector<std::pair<std::string, std::string> > m_receivedWallets;
 

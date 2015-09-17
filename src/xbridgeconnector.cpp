@@ -956,6 +956,9 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
 
     // xtx->payTx.GetHash();
 
+    uint256 walletTxId = (static_cast<CTransaction *>(&xtx->payTx))->GetHash();
+    m_mapWalletTxToXBridgeTx[walletTxId] = txid;
+
     xtx->state = XBridgeTransactionDescr::trCommited;
     uiInterface.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
@@ -964,7 +967,7 @@ bool XBridgeConnector::processTransactionCommit(XBridgePacketPtr packet)
     reply.append(hubAddress);
     reply.append(thisAddress);
     reply.append(txid.begin(), 32);
-    reply.append((static_cast<CTransaction *>(&xtx->payTx))->GetHash().begin(), 32);
+    reply.append(walletTxId.begin(), 32);
     if (!sendPacket(reply))
     {
         qDebug() << "error sending transaction commited packet "
@@ -1143,6 +1146,68 @@ bool XBridgeConnector::processAddressBookEntry(XBridgePacketPtr packet)
     std::string address(reinterpret_cast<const char *>(packet->data()+currency.length()+name.length()+2));
 
     uiInterface.NotifyXBridgeAddressBookEntryReceived(currency, name, address);
+
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::haveTransactionForRollback(const uint256 & walletTxId)
+{
+    if (!m_mapWalletTxToXBridgeTx.count(walletTxId))
+    {
+        return false;
+    }
+
+    uint256 txid = m_mapWalletTxToXBridgeTx[walletTxId];
+
+    XBridgeTransactionPtr xtx;
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+
+        if (!m_transactions.count(txid))
+        {
+            // wtf? unknown tx
+            // TODO log
+            return false;
+        }
+
+        xtx = m_transactions[txid];
+    }
+
+    return !xtx->revTx.IsNull();
+}
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeConnector::rollbackTransaction(const uint256 & walletTxId)
+{
+    if (!m_mapWalletTxToXBridgeTx.count(walletTxId))
+    {
+        return false;
+    }
+
+    uint256 txid = m_mapWalletTxToXBridgeTx[walletTxId];
+
+    XBridgeTransactionPtr xtx;
+    {
+        boost::mutex::scoped_lock l(m_txLocker);
+
+        if (!m_transactions.count(txid))
+        {
+            // wtf? unknown tx
+            // TODO log
+            return false;
+        }
+
+        xtx = m_transactions[txid];
+    }
+
+    revertXBridgeTransaction(xtx->id);
+
+    // update transaction state for gui
+    xtx->state = XBridgeTransactionDescr::trRollback;
+    uiInterface.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     return true;
 }

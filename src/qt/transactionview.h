@@ -1,6 +1,10 @@
+//******************************************************************************
+//******************************************************************************
+
 #ifndef TRANSACTIONVIEW_H
 #define TRANSACTIONVIEW_H
 
+#include "transactionrecord.h"
 #include <QWidget>
 
 class WalletModel;
@@ -14,8 +18,11 @@ class QModelIndex;
 class QMenu;
 class QFrame;
 class QDateTimeEdit;
+class QAction;
 QT_END_NAMESPACE
 
+//******************************************************************************
+//******************************************************************************
 /** Widget showing the transaction list for a wallet, including a filter row.
     Using the filter row, the user can view or export a subset of the transactions.
   */
@@ -44,18 +51,23 @@ private:
     TransactionFilterProxy *transactionProxyModel;
     QTableView *transactionView;
 
-    QComboBox *dateWidget;
-    QComboBox *typeWidget;
-    QLineEdit *addressWidget;
-    QLineEdit *amountWidget;
+    QComboBox * dateWidget;
+    QComboBox * typeWidget;
+    QLineEdit * addressWidget;
+    QLineEdit * amountWidget;
 
-    QMenu *contextMenu;
+    QMenu * contextMenu;
 
-    QFrame *dateRangeWidget;
-    QDateTimeEdit *dateFrom;
-    QDateTimeEdit *dateTo;
+    QFrame        * dateRangeWidget;
+    QDateTimeEdit * dateFrom;
+    QDateTimeEdit * dateTo;
 
-    QWidget *createDateRangeWidget();
+    QAction * m_rollbackTxAction;
+
+private:
+    QWidget * createDateRangeWidget();
+
+    std::pair<QString, TransactionRecord::Type> currentTxIdAndType() const;
 
 private slots:
     void contextualMenu(const QPoint &);
@@ -65,6 +77,8 @@ private slots:
     void editLabel();
     void copyLabel();
     void copyAmount();
+    void copyTxID();
+    void rollbackTx();
 
 signals:
     void doubleClicked(const QModelIndex&);
