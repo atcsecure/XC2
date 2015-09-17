@@ -243,11 +243,11 @@ void XBridgeTransactionDialog::onWalletListReceivedHandler(const QStringList & w
 //******************************************************************************
 void XBridgeTransactionDialog::onSendTransaction()
 {
-    bool isValidFrom = false;
-    std::vector<unsigned char> from = DecodeBase64(m_addressFrom->text().toStdString().c_str(), &isValidFrom);
-    bool isValidTo = false;
-    std::vector<unsigned char> to   = DecodeBase64(m_addressTo->text().toStdString().c_str(), &isValidTo);
-    if (from.size() == 0 || to.size() == 0 || !isValidFrom || !isValidTo)
+    bool isInvalidFrom = false;
+    std::vector<unsigned char> from = DecodeBase64(m_addressFrom->text().toStdString().c_str(), &isInvalidFrom);
+    bool isInvalidTo = false;
+    std::vector<unsigned char> to   = DecodeBase64(m_addressTo->text().toStdString().c_str(), &isInvalidFrom);
+    if (from.size() != 20 || to.size() != 20 || isInvalidFrom || isInvalidTo)
     {
         QMessageBox::warning(this, trUtf8("check parameters"), trUtf8("Invalid address"));
         return;
