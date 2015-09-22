@@ -806,8 +806,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
 
     // TODO lock time for tx2
 //    {
-//        time_t local = 0;
-//        time(&local);
+//        time_t local = GetAdjustedTime();
 //        tx2.nLockTime = local + 5;
 //    }
 
