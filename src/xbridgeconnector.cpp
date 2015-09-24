@@ -664,7 +664,7 @@ bool XBridgeConnector::processTransactionInit(XBridgePacketPtr packet)
 //******************************************************************************
 bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
 {
-    if (packet->size() != 96)
+    if (packet->size() != 100)
     {
         qDebug() << "incorrect packet size for xbcTransactionCreate" << __FUNCTION__;
         return false;
@@ -680,7 +680,8 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     std::vector<unsigned char> destAddress(packet->data()+72, packet->data()+92);
 
     // lock time
-    boost::uint32_t lockTime = *reinterpret_cast<boost::uint32_t *>(packet->data()+92);
+    boost::uint32_t lockTimeTx1 = *reinterpret_cast<boost::uint32_t *>(packet->data()+92);
+    boost::uint32_t lockTimeTx2 = *reinterpret_cast<boost::uint32_t *>(packet->data()+96);
 
     XBridgeTransactionPtr xtx;
     {
@@ -736,7 +737,7 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
     // lock time
     {
         time_t local = GetAdjustedTime();
-        tx1.nLockTime = local + lockTime;
+        tx1.nLockTime = local + lockTimeTx1;
     }
 
     // inputs
@@ -804,11 +805,11 @@ bool XBridgeConnector::processTransactionCreate(XBridgePacketPtr packet)
         tx2.vout.push_back(CTxOut(outAmount-2*MIN_TX_FEE, script));
     }
 
-    // TODO lock time for tx2
-//    {
-//        time_t local = GetAdjustedTime();
-//        tx2.nLockTime = local + 5;
-//    }
+    // lock time for tx2
+    {
+        time_t local = GetAdjustedTime();
+        tx2.nLockTime = local + lockTimeTx2;
+    }
 
     // serialize
     std::string unsignedTx2 = txToString(tx2);
@@ -879,7 +880,16 @@ bool XBridgeConnector::processTransactionSign(XBridgePacketPtr packet)
     CTransaction txpay = txFromString(rawtxpay);
     CTransaction txrev = txFromString(rawtxrev);
 
-    // TODO check txpay, sign txrevert
+    if (txpay.nLockTime < LOCKTIME_THRESHOLD || txrev.nLockTime < LOCKTIME_THRESHOLD)
+    {
+        // not signed, cancel tx
+        sendCancelTransaction(txid);
+        return false;
+    }
+
+    // TODO check txpay, inputs-outputs
+
+    // sign txrevert
     for (size_t i = 0; i < txrev.vin.size(); ++i)
     {
         if (!SignSignature(*pwalletMain, txpay, txrev, i))
