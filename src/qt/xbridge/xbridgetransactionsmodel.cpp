@@ -272,6 +272,14 @@ void XBridgeTransactionsModel::onTimer()
             m_transactions[i].state = XBridgeTransactionDescr::trExpired;
             emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
         }
+        else if (m_transactions[i].state == XBridgeTransactionDescr::trExpired &&
+                td.total_seconds() > 300)
+        {
+            emit beginRemoveRows(QModelIndex(), i, i);
+            m_transactions.erase(m_transactions.begin()+i);
+            emit endRemoveRows();
+            --i;
+        }
     }
 }
 
