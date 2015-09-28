@@ -191,9 +191,15 @@ void XBridgeTransactionsView::onRollbackTransaction()
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeTransactionsView::onContextMenu(QPoint pt)
+void XBridgeTransactionsView::onContextMenu(QPoint /*pt*/)
 {
-    m_contextMenuIndex = m_transactionsList->indexAt(pt);
+    m_contextMenuIndex = m_transactionsList->selectionModel()->currentIndex();
+    if (!m_contextMenuIndex.isValid())
+    {
+        return;
+    }
+
+    m_contextMenuIndex = m_proxy.mapToSource(m_contextMenuIndex);
     if (!m_contextMenuIndex.isValid())
     {
         return;
