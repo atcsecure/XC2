@@ -1,6 +1,7 @@
 ## XC_XBridge
 
-- XCurrency - XBRIDGE Core Build - 
+- XCurrency - XBRIDGE Core Build
+- XBridge Bratch includes fully function trustless DX with xbridgep2p client 
 
 ## to build headless on linux - make sure these directories exist
 
