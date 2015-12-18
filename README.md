@@ -1,14 +1,12 @@
-# XC_XBridge
-XCurrency - XBRIDGE Core Build - 
+## XC_XBridge
 
-to build headless on linux
+- XCurrency - XBRIDGE Core Build - 
 
-cd src
+## to build headless on linux - make sure these directories exist
 
-mkdir obj
-
-mkdir obj/lz4
-
-make -f makefile.unix
+- cd src
+- mkdir obj
+- mkdir obj/lz4
+- make -f makefile.unix
 
 
