@@ -31,6 +31,7 @@ enum
 enum txnouttype
 {
     TX_NONSTANDARD,
+    TX_NULL_DATA,
     // 'standard' transaction types:
     TX_PUBKEY,
     TX_PUBKEYHASH,

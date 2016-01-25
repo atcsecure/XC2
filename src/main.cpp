@@ -302,7 +302,25 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
     CTxIndex txindex;
     return ReadFromDisk(txdb, prevout, txindex);
 }
+bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
+{
+    std::vector<std::vector<unsigned char> > vSolutions;
+    if (!Solver(scriptPubKey, whichType, vSolutions))
+        return false;
 
+    if (whichType == TX_MULTISIG)
+    {
+        unsigned char m = vSolutions.front()[0];
+        unsigned char n = vSolutions.back()[0];
+        // Support up to x-of-3 multisig txns as standard
+        if (n < 1 || n > 3)
+            return false;
+        if (m < 1 || m > n)
+            return false;
+    }
+
+    return whichType != TX_NONSTANDARD;
+}
 bool CTransaction::IsStandard() const
 {
     if (nVersion > CTransaction::CURRENT_VERSION)
@@ -320,13 +338,13 @@ bool CTransaction::IsStandard() const
             return false;
     }
     //std::cerr << "The inputs are standard" << std::endl;
+    unsigned int nDataOut = 0;
+    txnouttype whichType;
     BOOST_FOREACH(const CTxOut& txout, vout) {
-        if (!::IsStandard(txout.scriptPubKey))
-          return false;
-        if (txout.nValue == 0) {
-          std::cerr << "zero value output is illegal" << std::endl;
-          return false;
-        }
+        if (!::IsStandard(txout.scriptPubKey, whichType) && txout.scriptPubKey[0]!=106) {
+                    return false;
+                }
+
     }
     return true;
 }
@@ -486,7 +504,7 @@ bool CTransaction::CheckTransaction() const
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
 
         // ppcoin: enforce minimum output amount
-        if ((!txout.IsEmpty()) && txout.nValue < MIN_TXOUT_AMOUNT)
+        if ((!txout.IsEmpty()) && txout.nValue < MIN_TXOUT_AMOUNT &&txout.scriptPubKey[0]!=106)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
 
         if (txout.nValue > MAX_MONEY)
