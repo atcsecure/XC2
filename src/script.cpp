@@ -102,6 +102,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_PUBKEYHASH: return "pubkeyhash";
     case TX_SCRIPTHASH: return "scripthash";
     case TX_MULTISIG: return "multisig";
+    case TX_NULL_DATA: return "nulldata";
     }
     return NULL;
 }
@@ -1378,6 +1379,7 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     switch (whichTypeRet)
     {
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         return false;
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
@@ -1408,6 +1410,7 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
     switch (t)
     {
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         return -1;
     case TX_PUBKEY:
         return 1;
@@ -1423,26 +1426,6 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
     return -1;
 }
 
-bool IsStandard(const CScript& scriptPubKey)
-{
-    vector<valtype> vSolutions;
-    txnouttype whichType;
-    if (!Solver(scriptPubKey, whichType, vSolutions))
-        return false;
-
-    if (whichType == TX_MULTISIG)
-    {
-        unsigned char m = vSolutions.front()[0];
-        unsigned char n = vSolutions.back()[0];
-        // Support up to x-of-3 multisig txns as standard
-        if (n < 1 || n > 3)
-            return false;
-        if (m < 1 || m > n)
-            return false;
-    }
-
-    return whichType != TX_NONSTANDARD;
-}
 
 
 unsigned int HaveKeys(const vector<valtype>& pubkeys, const CKeyStore& keystore)
@@ -1484,6 +1467,7 @@ bool IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
     CKeyID keyID;
     switch (whichType)
     {
+    case TX_NULL_DATA:
     case TX_NONSTANDARD:
         return false;
     case TX_PUBKEY:
@@ -1734,6 +1718,7 @@ static CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo,
 {
     switch (txType)
     {
+    case TX_NULL_DATA:
     case TX_NONSTANDARD:
         // Don't know anything about this, assume bigger one is correct:
         if (sigs1.size() >= sigs2.size())

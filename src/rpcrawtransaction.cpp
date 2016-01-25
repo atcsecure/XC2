@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <boost/assign/list_of.hpp>
-
+#include <cstdio>
 #include "base58.h"
 #include "bitcoinrpc.h"
 #include "db.h"
@@ -207,9 +207,10 @@ Value createrawtransaction(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "createrawtransaction [{\"txid\":txid,\"vout\":n},...] {address:amount,...}\n"
+            "createrawtransaction [{\"txid\":txid,\"vout\":n},...] {\"data\":\"<Message>\",address:amount,...}\n"
             "Create a transaction spending given inputs\n"
             "(array of objects containing transaction id and output number),\n"
+            "Message is Hex encoded for use with OP_RETURN Limit of 253bytes\n"
             "sending to given address(es).\n"
             "Returns hex-encoded raw transaction.\n"
             "Note that the transaction's inputs are not signed, and\n"
@@ -247,7 +248,16 @@ Value createrawtransaction(const Array& params, bool fHelp)
     set<CBitcoinAddress> setAddress;
     BOOST_FOREACH(const Pair& s, sendTo)
     {
-        CBitcoinAddress address(s.name_);
+        if (s.name_ == string("data"))
+        {
+            std::vector<unsigned char> data = ParseHex(s.value_.get_str());
+            if(data.size()>126)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Message length greater than 253");
+
+            CTxOut out(0,CScript() << OP_RETURN << data);
+            rawTx.vout.push_back(out);
+        }else{
+            CBitcoinAddress address(s.name_);
         if (!address.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid XCurrency address: ")+s.name_);
 
@@ -261,7 +271,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
 
         CTxOut out(nAmount, scriptPubKey);
         rawTx.vout.push_back(out);
-    }
+    }}
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << rawTx;
