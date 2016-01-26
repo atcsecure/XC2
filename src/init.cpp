@@ -11,6 +11,8 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+#include "xbridgeconnector.h"
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -300,8 +302,10 @@ std::string HelpMessage()
         "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n" +
 
         "\n" + _("DISTMIX options: ") + "\n" +
-        "  -distmix-autonode                        " + _("Start distmix autonode") + "\n";
+        "  -distmix-autonode                        " + _("Start distmix autonode") + "\n"
 
+        "\n" + _("XBridge options:") + "\n" +
+        "  -xbridge-address=<ip[:port]>             " + _("XBridge hub address") + "\n";
 
     return strUsage;
 }
@@ -888,6 +892,9 @@ bool AppInit2()
 
      // Add wallet transactions that aren't already in a block to mapTransactions
     pwalletMain->ReacceptWalletTransactions();
+
+    // start xbridge and announce local addresses
+    xbridge().connect();
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,

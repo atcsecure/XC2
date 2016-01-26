@@ -148,7 +148,9 @@ OBJS= \
     obj/message.o \
     obj/messagedb.o \
     obj/multisigmixer.o \
-    obj/lz4/lz4.o
+    obj/lz4/lz4.o \
+    obj/xbridgeconnector.o \
+    obj/xbridgelowlevel.o
 
 all: XCurrencyd
 

@@ -13,6 +13,9 @@
 #include "../../wallet.h"
 #include "../../init.h"
 
+// TODO for testing
+#include "../xbridgeconnector.h"
+
 #include <QDateTime>
 #include <QMessageBox>
 #include <QClipboard>
@@ -106,8 +109,9 @@ void MessagesDialog::setToAddress(const QString & address)
 
     ui->pubKeyTo_SM->clear();
 
-    CBitcoinAddress addr(address.toStdString());
-    if (addr.IsValid())
+    // TODO disable for blocknet testing
+    // CBitcoinAddress addr(address.toStdString());
+    // if (addr.IsValid())
     {
         CPubKey pubKey;
         m_keys.load(address.toStdString(), pubKey);
@@ -280,6 +284,8 @@ void MessagesDialog::clearMessages(const QString & address)
 //*****************************************************************************
 void MessagesDialog::pushToUndelivered(const Message & m)
 {
+    return;
+
     UndeliveredMap messages;
     m_db.loadUndelivered(messages);
 
@@ -461,12 +467,14 @@ void MessagesDialog::on_sendButton_SM_clicked()
 
     // check destination addr
     m.to = ui->addressTo_SM->text().toStdString();
-    if (!checkAddress(m.to))
-    {
-        ui->addressTo_SM->setValid(false);
-        QMessageBox::warning(this, "", "invalid address");
-        return;
-    }
+
+    // TODO disable for blocknet testing
+//    if (!checkAddress(m.to))
+//    {
+//        ui->addressTo_SM->setValid(false);
+//        QMessageBox::warning(this, "", "invalid address");
+//        return;
+//    }
 
     CKey myKey;
     if (!getKeyForAddress(m.from, myKey))
@@ -692,6 +700,8 @@ void MessagesDialog::addrContextMenu(QPoint point)
 // static
 bool MessagesDialog::resendUndelivered(const std::vector<std::string> & addresses)
 {
+    return true;
+
     ChatDb & db = ChatDb::instance();
 
     UndeliveredMap map;

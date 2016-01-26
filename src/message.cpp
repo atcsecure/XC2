@@ -2,6 +2,7 @@
 //*****************************************************************************
 
 #include "messagedb.h"
+#include "xbridgeconnector.h"
 
 // #include "qt/walletmodel.h"
 
@@ -128,7 +129,8 @@ bool Message::isExpired() const
 //*****************************************************************************
 bool Message::send()
 {
-    return broadcast();
+    // return broadcast();
+    return xbridge().sendXChatMessage(*this);
 }
 
 //*****************************************************************************
@@ -157,12 +159,12 @@ bool Message::process(bool & isForMe)
         uiInterface.NotifyNewMessage(*this);
 
         // send message received
-        LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode * pnode, vNodes)
-        {
-            uint256 hash = getStaticHash();
-            pnode->PushMessage("msgack", hash);
-        }
+//        LOCK(cs_vNodes);
+//        BOOST_FOREACH(CNode * pnode, vNodes)
+//        {
+//            uint256 hash = getStaticHash();
+//            pnode->PushMessage("msgack", hash);
+//        }
     }
     return true;
 }
@@ -215,7 +217,7 @@ bool Message::broadcast() const
     return true;
 }
 
-extern const std::string strMessageMagic;
+const std::string xchatMessageMagic("XChat Signed Message");
 
 //*****************************************************************************
 //*****************************************************************************
@@ -231,7 +233,7 @@ bool Message::sign(CKey & key)
     }
 
     CDataStream ss(SER_GETHASH, 0);
-    ss << strMessageMagic << text;
+    ss << xchatMessageMagic << text;
 
     // std::vector<unsigned char> vchSig;
     if (!key.SignCompact(Hash(ss.begin(), ss.end()), signature))
@@ -256,7 +258,7 @@ bool Message::sign(CKey & key)
 //    }
 
 //    CDataStream ss(SER_GETHASH, 0);
-//    ss << strMessageMagic << text;
+//    ss << xchatMessageMagic << text;
 
 //    // std::vector<unsigned char> vchSig;
 //    if (!key.SignCompact(Hash(ss.begin(), ss.end()), signature))
@@ -498,7 +500,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
     {
         // no data
         return false;
-    };
+    }
 
     CKey keyR;
     CPubKey cpkR(publicRKey);
@@ -506,14 +508,14 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
     {
         // invalid key
         return false;
-    };
+    }
 
     cpkR = keyR.GetPubKey();
     if (!cpkR.IsValid() || !cpkR.IsCompressed())
     {
         // invalid key
         return false;
-    };
+    }
 
     // Do an EC point multiply with private key k and public key R. This gives you public key P.
     EC_KEY * pkeyk = receiverKey.GetECKey();
@@ -528,7 +530,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
     {
         // ECDH_compute_key failed
         return false;
-    };
+    }
 
     // Use public key P to calculate the SHA512 hash H.
     // The first 32 bytes of H are called key_e and the last 32 bytes are called key_m.
@@ -567,7 +569,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
         {
             // expected if message is not to address on node
             return false;
-        };
+        }
 
         isMessageForMy = true;
     }
@@ -580,7 +582,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
     {
         // decryption failed
         return false;
-    };
+    }
 
     uint32_t lenData = 0;
     uint32_t lenPlain = 0;
@@ -600,7 +602,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
     {
         // no memory
         return false;
-    };
+    }
 
 
     if (lenPlain > 128)
@@ -610,13 +612,13 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
         {
             // decompress failed
             return false;
-        };
+        }
     }
     else
     {
         // plaintext
         memcpy(&text[0], pMsgData, lenPlain);
-    };
+    }
 
     // text[lenPlain] = '\0';
 
@@ -637,7 +639,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
             {
                 // invalid address
                 return false;
-            };
+            }
         }
 
         // signature
@@ -647,7 +649,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
             memcpy(&signature[0], &vchPayload[1+20], 65);
 
             CDataStream ss(SER_GETHASH, 0);
-            ss << strMessageMagic << text;
+            ss << xchatMessageMagic << text;
 
             CKey keyFrom;
             keyFrom.SetCompactSignature(Hash(ss.begin(), ss.end()), signature);
@@ -656,7 +658,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
             {
                 // signature valifation failed
                 return false;
-            };
+            }
 
             // get address for the compressed public key
             coinAddrFromSig.Set(senderPubKey.GetID());
@@ -664,16 +666,17 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
             {
                 // invalid address
                 return false;
-            };
+            }
         }
 
         if (!(coinAddrFrom == coinAddrFromSig))
         {
             // signature valifation failed
-            return false;
-        };
 
-        // save source public key
+            // TODO
+            // temporary disabled for xchat
+            return false;
+        }
     }
 
     return true;

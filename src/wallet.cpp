@@ -1107,6 +1107,8 @@ int64 CWallet::GetNewMint() const
     return nTotal;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::SelectCoinsMinConf(int64 nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, vector<COutput> vCoins, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const
 {
     setCoinsRet.clear();
@@ -1212,6 +1214,8 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, unsigned int nSpendTime, in
     return true;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet, const CCoinControl* coinControl) const
 {
     vector<COutput> vCoins;
@@ -1233,6 +1237,8 @@ bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<
             SelectCoinsMinConf(nTargetValue, nSpendTime, 0, 1, vCoins, setCoinsRet, nValueRet));
 }
 
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl* coinControl)
 {
     int64 nValue = 0;
@@ -1253,7 +1259,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
         CTxDB txdb("r");
         {
             nFeeRet = nTransactionFee;
-            loop
+            while (true)
             {
                 wtxNew.vin.clear();
                 wtxNew.vout.clear();
@@ -1366,6 +1372,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
     return true;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl* coinControl)
 {
     vector< pair<CScript, int64> > vecSend;
@@ -1373,6 +1381,32 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& w
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, coinControl);
 }
 
+//*****************************************************************************
+//*****************************************************************************
+bool CWallet::createAndCommitTransaction(const std::vector<std::pair<CScript, int64> > & rcpts,
+                                         uint256 & hash)
+{
+    CWalletTx wtx;
+    CReserveKey rkeys(this);
+    int64 fee = 0;
+
+    if (!CreateTransaction(rcpts, wtx, rkeys, fee))
+    {
+        return error("CreateTransaction failed");
+    }
+
+    if (!CommitTransaction(wtx, rkeys))
+    {
+        return error("CommitTransaction failed");
+    }
+
+    hash = wtx.GetHash();
+
+    return true;
+}
+
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint64& nMaxWeight, uint64& nWeight)
 {
     // Choose coins to use
@@ -1429,7 +1463,9 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint
     return true;
 }
 
+//*****************************************************************************
 // ppcoin: create coin stake transaction
+//*****************************************************************************
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
     // The following split & combine thresholds are important to security
@@ -1603,7 +1639,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     }
 
     int64 nMinFee = 0;
-    loop
+    while (true)
     {
         // Set output amount
         if (txNew.vout.size() == 3)
@@ -1646,7 +1682,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 }
 
 
+//*****************************************************************************
 // Call after CreateTransaction unless you want to abort
+//*****************************************************************************
 bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
 {
     {
@@ -1754,11 +1792,15 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64 nVal
 
 
 
-
+//*****************************************************************************
+//*****************************************************************************
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {
     if (!fFileBacked)
+    {
         return DB_LOAD_OK;
+    }
+
     fFirstRunRet = false;
     DBErrors nLoadWalletRet = CWalletDB(strWalletFile,"cr+").LoadWallet(this);
     if (nLoadWalletRet == DB_NEED_REWRITE)
@@ -1773,14 +1815,20 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     }
 
     if (nLoadWalletRet != DB_LOAD_OK)
+    {
         return nLoadWalletRet;
+    }
+
     fFirstRunRet = !vchDefaultKey.IsValid();
 
     NewThread(ThreadFlushWalletDB, &strWalletFile);
+
+
     return DB_LOAD_OK;
 }
 
-
+//*****************************************************************************
+//*****************************************************************************
 bool CWallet::SetAddressBookName(const CTxDestination& address, const string& strName)
 {
     std::map<CTxDestination, std::string>::iterator mi = mapAddressBook.find(address);

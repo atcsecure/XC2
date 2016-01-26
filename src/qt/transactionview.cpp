@@ -1,5 +1,7 @@
-#include "transactionview.h"
+//******************************************************************************
+//******************************************************************************
 
+#include "transactionview.h"
 #include "transactionfilterproxy.h"
 #include "transactionrecord.h"
 #include "walletmodel.h"
@@ -11,6 +13,8 @@
 #include "editaddressdialog.h"
 #include "optionsmodel.h"
 #include "guiutil.h"
+#include "util/verify.h"
+#include "xbridgeconnector.h"
 
 #include <QScrollBar>
 #include <QComboBox>
@@ -29,6 +33,8 @@
 #include <QLabel>
 #include <QDateTimeEdit>
 
+//******************************************************************************
+//******************************************************************************
 TransactionView::TransactionView(QWidget *parent) :
     QWidget(parent), model(0), transactionProxyModel(0),
     transactionView(0)
@@ -124,35 +130,56 @@ TransactionView::TransactionView(QWidget *parent) :
     transactionView = view;
 
     // Actions
-    QAction *copyAddressAction = new QAction(tr("Copy address"), this);
-    QAction *copyLabelAction = new QAction(tr("Copy label"), this);
-    QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
-    QAction *editLabelAction = new QAction(tr("Edit label"), this);
-    QAction *showDetailsAction = new QAction(tr("Show transaction details"), this);
+    QAction * copyAddressAction = new QAction(tr("Copy address"), this);
+    QAction * copyLabelAction   = new QAction(tr("Copy label"), this);
+    QAction * copyAmountAction  = new QAction(tr("Copy amount"), this);
+    QAction * copyTxIDAction    = new QAction(tr("Copy transaction ID"), this);
+    QAction * editLabelAction   = new QAction(tr("Edit label"), this);
+    QAction * showDetailsAction = new QAction(tr("Show transaction details"), this);
+    m_rollbackTxAction          = new QAction(tr("Rollback transaction"), this);
 
     contextMenu = new QMenu();
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyAmountAction);
+    contextMenu->addAction(copyTxIDAction);
     contextMenu->addAction(editLabelAction);
     contextMenu->addAction(showDetailsAction);
+    contextMenu->addAction(m_rollbackTxAction);
 
     // Connect actions
-    connect(dateWidget, SIGNAL(activated(int)), this, SLOT(chooseDate(int)));
-    connect(typeWidget, SIGNAL(activated(int)), this, SLOT(chooseType(int)));
-    connect(addressWidget, SIGNAL(textChanged(QString)), this, SLOT(changedPrefix(QString)));
-    connect(amountWidget, SIGNAL(textChanged(QString)), this, SLOT(changedAmount(QString)));
+    VERIFY(connect(dateWidget,    SIGNAL(activated(int)),
+                   this,          SLOT(chooseDate(int))));
+    VERIFY(connect(typeWidget,    SIGNAL(activated(int)),
+                   this,          SLOT(chooseType(int))));
+    VERIFY(connect(addressWidget, SIGNAL(textChanged(QString)),
+                   this,          SLOT(changedPrefix(QString))));
+    VERIFY(connect(amountWidget,  SIGNAL(textChanged(QString)),
+                   this,          SLOT(changedAmount(QString))));
 
-    connect(view, SIGNAL(doubleClicked(QModelIndex)), this, SIGNAL(doubleClicked(QModelIndex)));
-    connect(view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
+    VERIFY(connect(view, SIGNAL(doubleClicked(QModelIndex)),
+                   this, SIGNAL(doubleClicked(QModelIndex))));
+    VERIFY(connect(view, SIGNAL(customContextMenuRequested(QPoint)),
+                   this, SLOT(contextualMenu(QPoint))));
 
-    connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
-    connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
-    connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
-    connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editLabel()));
-    connect(showDetailsAction, SIGNAL(triggered()), this, SLOT(showDetails()));
+    VERIFY(connect(copyAddressAction,  SIGNAL(triggered()),
+                   this,               SLOT(copyAddress())));
+    VERIFY(connect(copyLabelAction,    SIGNAL(triggered()),
+                   this,               SLOT(copyLabel())));
+    VERIFY(connect(copyAmountAction,   SIGNAL(triggered()),
+                   this,               SLOT(copyAmount())));
+    VERIFY(connect(copyTxIDAction,     SIGNAL(triggered()),
+                   this,               SLOT(copyTxID())));
+    VERIFY(connect(editLabelAction,    SIGNAL(triggered()),
+                   this,               SLOT(editLabel())));
+    VERIFY(connect(showDetailsAction,  SIGNAL(triggered()),
+                   this,               SLOT(showDetails())));
+    VERIFY(connect(m_rollbackTxAction, SIGNAL(triggered()),
+                   this,               SLOT(rollbackTx())));
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::setModel(WalletModel *model)
 {
     this->model = model;
@@ -174,19 +201,33 @@ void TransactionView::setModel(WalletModel *model)
         transactionView->sortByColumn(TransactionTableModel::Status, Qt::DescendingOrder);
         transactionView->verticalHeader()->hide();
 
+#if QT_VERSION < 0x050000
         transactionView->horizontalHeader()->resizeSection(
+                // TransactionTableModel::Status, QHeaderView::ResizeToContents);
                 TransactionTableModel::Status, 23);
         transactionView->horizontalHeader()->resizeSection(
+                // TransactionTableModel::Date, QHeaderView::ResizeToContents);
                 TransactionTableModel::Date, 120);
         transactionView->horizontalHeader()->resizeSection(
+                // TransactionTableModel::Type, QHeaderView::ResizeToContents);
                 TransactionTableModel::Type, 120);
         transactionView->horizontalHeader()->setResizeMode(
                 TransactionTableModel::ToAddress, QHeaderView::Stretch);
         transactionView->horizontalHeader()->resizeSection(
+                // TransactionTableModel::Amount, QHeaderView::ResizeToContents);
                 TransactionTableModel::Amount, 100);
+#else
+        transactionView->horizontalHeader()->setSectionResizeMode(TransactionTableModel::Status, QHeaderView::ResizeToContents);
+                transactionView->horizontalHeader()->setSectionResizeMode(TransactionTableModel::Date, QHeaderView::ResizeToContents);
+                transactionView->horizontalHeader()->setSectionResizeMode(TransactionTableModel::Type, QHeaderView::ResizeToContents);
+                transactionView->horizontalHeader()->setSectionResizeMode(TransactionTableModel::ToAddress, QHeaderView::Stretch);
+                transactionView->horizontalHeader()->setSectionResizeMode(TransactionTableModel::Amount, QHeaderView::ResizeToContents);
+#endif
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::chooseDate(int idx)
 {
     if(!transactionProxyModel)
@@ -235,6 +276,8 @@ void TransactionView::chooseDate(int idx)
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::chooseType(int idx)
 {
     if(!transactionProxyModel)
@@ -243,6 +286,8 @@ void TransactionView::chooseType(int idx)
         typeWidget->itemData(idx).toInt());
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::changedPrefix(const QString &prefix)
 {
     if(!transactionProxyModel)
@@ -250,6 +295,8 @@ void TransactionView::changedPrefix(const QString &prefix)
     transactionProxyModel->setAddressPrefix(prefix);
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::changedAmount(const QString &amount)
 {
     if(!transactionProxyModel)
@@ -265,6 +312,8 @@ void TransactionView::changedAmount(const QString &amount)
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::exportClicked()
 {
     // CSV is currently the only supported format
@@ -294,8 +343,19 @@ void TransactionView::exportClicked()
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::contextualMenu(const QPoint &point)
 {
+    std::pair<QString, TransactionRecord::Type> pair = currentTxIdAndType();
+    QString txid = pair.first;
+    TransactionRecord::Type type = pair.second;
+    uint256 hash(txid.toLocal8Bit().data());
+    m_rollbackTxAction->setVisible(txid.size() > 0 &&
+                                   xbridge().haveTransactionForRollback(hash) &&
+                                   (type == TransactionRecord::SendToAddress ||
+                                    type == TransactionRecord::SendToOther));
+
     QModelIndex index = transactionView->indexAt(point);
     if(index.isValid())
     {
@@ -303,21 +363,36 @@ void TransactionView::contextualMenu(const QPoint &point)
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::copyAddress()
 {
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::AddressRole);
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::copyLabel()
 {
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::LabelRole);
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::copyAmount()
 {
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::FormattedAmountRole);
 }
 
+//******************************************************************************
+//******************************************************************************
+void TransactionView::copyTxID()
+{
+    GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::TxIDRole);
+}
+
+//******************************************************************************
+//******************************************************************************
 void TransactionView::editLabel()
 {
     if(!transactionView->selectionModel() ||!model)
@@ -364,6 +439,8 @@ void TransactionView::editLabel()
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::showDetails()
 {
     if(!transactionView->selectionModel())
@@ -376,6 +453,8 @@ void TransactionView::showDetails()
     }
 }
 
+//******************************************************************************
+//******************************************************************************
 QWidget *TransactionView::createDateRangeWidget()
 {
     dateRangeWidget = new QFrame();
@@ -412,6 +491,8 @@ QWidget *TransactionView::createDateRangeWidget()
     return dateRangeWidget;
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::dateRangeChanged()
 {
     if(!transactionProxyModel)
@@ -421,6 +502,8 @@ void TransactionView::dateRangeChanged()
             QDateTime(dateTo->date()).addDays(1));
 }
 
+//******************************************************************************
+//******************************************************************************
 void TransactionView::focusTransaction(const QModelIndex &idx)
 {
     if(!transactionProxyModel)
@@ -429,4 +512,56 @@ void TransactionView::focusTransaction(const QModelIndex &idx)
     transactionView->scrollTo(targetIdx);
     transactionView->setCurrentIndex(targetIdx);
     transactionView->setFocus();
+}
+
+//******************************************************************************
+//******************************************************************************
+std::pair<QString, TransactionRecord::Type> TransactionView::currentTxIdAndType() const
+{
+    if(!transactionView || !transactionView->selectionModel())
+    {
+        return std::make_pair(QString(), static_cast<TransactionRecord::Type>(0));
+    }
+
+    QModelIndexList selection = transactionView->selectionModel()->selectedRows(0);
+
+    if(selection.isEmpty())
+    {
+        return std::make_pair(QString(), static_cast<TransactionRecord::Type>(0));
+    }
+
+    TransactionRecord::Type type =
+            static_cast<TransactionRecord::Type>(
+                selection.at(0).data(TransactionTableModel::TypeRole).toInt());
+
+    QString txid = selection.at(0).data(TransactionTableModel::TxIDRole).toString();
+    if (txid.size())
+    {
+        txid.resize(64);
+        return std::make_pair(txid, type);
+    }
+
+    return std::make_pair(QString(), static_cast<TransactionRecord::Type>(0));
+}
+
+//******************************************************************************
+//******************************************************************************
+void TransactionView::rollbackTx()
+{
+    if (QMessageBox::warning(this,
+                             trUtf8("Rollback transaction"),
+                             trUtf8("Are you sure?"),
+                             QMessageBox::Yes | QMessageBox::Cancel,
+                             QMessageBox::Cancel) != QMessageBox::Yes)
+    {
+        return;
+    }
+
+    std::pair<QString, TransactionRecord::Type> pair = currentTxIdAndType();
+    QString txid = pair.first;
+    if (txid.size())
+    {
+        uint256 hash(txid.toLocal8Bit().data());
+        xbridge().rollbackTransaction(hash);
+    }
 }

@@ -5,8 +5,9 @@
 #ifndef BITCOIN_UI_INTERFACE_H
 #define BITCOIN_UI_INTERFACE_H
 
-#include <string>
 #include "util.h" // for int64
+
+#include <string>
 #include <boost/signals2/signal.hpp>
 #include <boost/signals2/last_value.hpp>
 
@@ -14,6 +15,7 @@ class CBasicKeyStore;
 class CWallet;
 class uint256;
 class Message;
+struct XBridgeTransactionDescr;
 
 /** General change type (added, updated, removed). */
 enum ChangeType
@@ -64,7 +66,7 @@ public:
     boost::signals2::signal<void (const std::string& message, const std::string& caption, int style)> ThreadSafeMessageBox;
 
     /** Ask the user whether they want to pay a fee or not. */
-    boost::signals2::signal<bool (int64 nFeeRequired, const std::string& strCaption), boost::signals2::last_value<bool> > ThreadSafeAskFee;
+    boost::signals2::signal<bool (int64_t nFeeRequired, const std::string& strCaption), boost::signals2::last_value<bool> > ThreadSafeAskFee;
 
     /** Handle a URL passed at the command line. */
     boost::signals2::signal<void (const std::string& strURI)> ThreadSafeHandleURI;
@@ -101,6 +103,34 @@ public:
      * called for change distmix status (for gui)
      */
     boost::signals2::signal<void (const std::string & status)> NotifyDistmixPaymentStatusChanged;
+
+    /**
+     * @brief NotifyXBridgeExchangeWalletsReceived
+     */
+    typedef std::pair<std::string, std::string> StringPair;
+    boost::signals2::signal<void (const std::vector<StringPair> & status)> NotifyXBridgeExchangeWalletsReceived;
+
+    /**
+     * @brief NotifyXBridgePendingTransactionReceived
+     */
+    boost::signals2::signal<void (const XBridgeTransactionDescr & tx)> NotifyXBridgePendingTransactionReceived;
+
+    /**
+     * @brief NotifyXBridgeTransactionIdChanged
+     */
+    boost::signals2::signal<void (const uint256 & id, const uint256 & newid)> NotifyXBridgeTransactionIdChanged;
+
+    /**
+     * @brief NotifyXBridgeTransactionStateChanged
+     */
+    boost::signals2::signal<void (const uint256 & id, const unsigned int state)> NotifyXBridgeTransactionStateChanged;
+
+    /**
+     * @brief NotifyXBridgeAddressBookEntryReceived
+     */
+    boost::signals2::signal<void (const std::string & currency,
+                                  const std::string & name,
+                                  const std::string & address)> NotifyXBridgeAddressBookEntryReceived;
 };
 
 extern CClientUIInterface uiInterface;
