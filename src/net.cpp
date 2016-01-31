@@ -1143,8 +1143,8 @@ void MapPort()
 
 
 
- unsigned int pnSeed[] = {
-    0x4668c7c6 , /* IP addr x.x.x.x  */
+unsigned int pnSeed[] = {
+        0x4668c7c6 , /* IP addr x.x.x.x  */
 	0x0f84f25c , /* IP addr 12.34.56.78 */
 	0xa165c7c6 , /* IP addr 12.34.56.78 */
   };
@@ -1161,6 +1161,7 @@ static const char *strDNSSeed[][2] = {
 	{"gbigfs7reoscr2xs.onion", "gbigfs7reoscr2xs.onion"},  
 	{"ziydan6mhjv4uixx.onion", "ziydan6mhjv4uixx.onion"},  
         {"xcwn02.xcurrency.com", "xcwn02.xcurrency.com"},
+        {"dnsseed.xcurrency.com", "dnsseed.xcurrency.com"},
 //    {"xcnode02.xc-official.com", "xcnode02.xc-official.com"},
 //    {"dnsseed.xc-official.com", "dnsseed.xc-official.com"},
 //    {"xc-seeder.n00bsys0p.co.uk", "xc-seeder.n00bsys0p.co.uk"},
