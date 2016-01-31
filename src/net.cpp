@@ -1161,8 +1161,9 @@ static const char *strDNSSeed[][2] = {
 	{"gbigfs7reoscr2xs.onion", "gbigfs7reoscr2xs.onion"},  
 	{"ziydan6mhjv4uixx.onion", "ziydan6mhjv4uixx.onion"},  
         {"xcwn02.xcurrency.com", "xcwn02.xcurrency.com"},
+        {"xcwn01.xcurrency.co", "xcwn01.xcurrency.co"},
 //    {"xcnode02.xc-official.com", "xcnode02.xc-official.com"},
-//    {"dnsseed.xc-official.com", "dnsseed.xc-official.com"},
+        {"dnsseed.xcurrency.com", "dnsseed.xcurrency.com"},
 //    {"xc-seeder.n00bsys0p.co.uk", "xc-seeder.n00bsys0p.co.uk"},
 	// {"xcdnsseed.alltheco.in", "xcdnsseed.alltheco.in"},
 	
