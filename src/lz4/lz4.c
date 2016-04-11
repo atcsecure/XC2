@@ -533,7 +533,7 @@ _endCount:
         LZ4_putPosition(ip, ctx, tableType, base);
         if ((ref + MAX_DISTANCE >= ip) && (A32(ref) == A32(ip))) { token = op++; *token=0; goto _next_match; }
 
-        /* Prepare next loop */
+        /* Prepare next while(true) */
         anchor = ip++;
         forwardH = LZ4_hashPosition(ip, tableType);
     }

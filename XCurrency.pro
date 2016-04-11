@@ -4,10 +4,12 @@ VERSION = 0.7.2
 INCLUDEPATH += src src/json src/qt
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE BOOST_THREAD_PROVIDES_GENERIC_SHARED_MUTEX_ON_WIN __NO_SYSTEM_INCLUDES
 CONFIG += no_include_pwd
-
+QT += core gui network
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 # UNCOMMENT THIS SECTION TO BUILD ON WINDOWS
 # Change paths if needed, these use the foocoin/deps.git repository locations
-
+CONFIG += thread
+CONFIG += static
 !include($$PWD/config.pri) {
     error(Failed to include config.pri)
 }
@@ -32,11 +34,11 @@ windows {
         -loleaut32 \
         -luuid \
         -lgdi32 \
-        -lboost_system-mgw48-mt-sd-1_55 \
-        -lboost_filesystem-mgw48-mt-sd-1_55 \
-        -lboost_program_options-mgw48-mt-sd-1_55 \
-        -lboost_thread-mgw48-mt-sd-1_55 \
-        -lboost_date_time-mgw48-mt-sd-1_55
+#        -lboost_system-mgw49-mt-sd-1_55 \
+#        -lboost_filesystem-mgw49-mt-sd-1_55 \
+#        -lboost_program_options-mgw49-mt-sd-1_55 \
+#        -lboost_thread-mgw49-mt-sd-1_55 \
+#        -lboost_date_time-mgw49-mt-sd-1_55
 }
 
 unix {
@@ -85,6 +87,7 @@ contains(USE_QRCODE, 1) {
 #  or: qmake "USE_UPNP=0" (disabled by default)
 #  or: qmake "USE_UPNP=-" (not supported)
 # miniupnpc (http://miniupnp.free.fr/files/) must be installed for support
+USE_UPNP=-
 contains(USE_UPNP, -) {
     message(Building without UPNP support)
 } else {
@@ -392,7 +395,7 @@ OTHER_FILES += \
 # platform specific defaults, if not overridden on command line
 isEmpty(BOOST_LIB_SUFFIX) {
     macx:BOOST_LIB_SUFFIX = -mt
-    windows:BOOST_LIB_SUFFIX = -mgw48-mt-s-1_55
+    windows:BOOST_LIB_SUFFIX = -mgw49-mt-s-1_55
 }
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {

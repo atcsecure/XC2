@@ -11,7 +11,7 @@ Makefile.*
 #################
 ## Eclipse
 #################
-
+*-qt_plugin_import.cpp
 *.pydevproject
 .project
 .metadata
