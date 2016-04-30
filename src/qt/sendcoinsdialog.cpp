@@ -168,7 +168,11 @@ void SendCoinsDialog::on_sendButton_clicked()
     foreach (SendCoinsEntry * entry, m_sendEntries)
     {
         SendCoinsRecipient rcp = entry->getValue();
+#if QT_VERSION < 0x050000
         formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount), Qt::escape(rcp.label), rcp.address));
+#else
+         formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount), rcp.label.toHtmlEscaped(), rcp.address));
+#endif
     }
 
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send coins"),

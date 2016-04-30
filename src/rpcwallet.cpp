@@ -1965,7 +1965,7 @@ Value distmix(const Array& params, bool fHelp)
 
             if (change_left < outAmount)
             {
-                // outAmount is too much, change to a valid amount and quit the loop
+                // outAmount is too much, change to a valid amount and quit the while(true)
                 at_c<1>(msgtx->myoutputs.back()) = change_left;
 
                 std::cerr << "Not enough change left; using "
@@ -1977,14 +1977,14 @@ Value distmix(const Array& params, bool fHelp)
 
             else if (change_left == outAmount)
             {
-                // outAmount is just right, quit the loop successfully
+                // outAmount is just right, quit the while(true) successfully
                 change_left = 0;
                 break;
             }
 
             else
             {
-                // outAmount isn't enough; loop around again,
+                // outAmount isn't enough; while(true) around again,
                 // or fall through to put the rest of the change in here
                 change_left -= outAmount;
             }

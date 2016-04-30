@@ -21,7 +21,7 @@ void start_distmix_search(int64 amount, ptime start)
     {
         std::cerr << "Time waited: " << second_clock::universal_time() - start << std::endl;
         std::cerr << "Is it done?" << (second_clock::universal_time() - start >= posix_time::seconds(60)) << std::endl;
-        std::cerr << "Start loop!" << std::endl;
+        std::cerr << "Start while(true)!" << std::endl;
 
         {
             LOCK(cs_msgtx);
