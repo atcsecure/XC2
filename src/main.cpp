@@ -492,8 +492,9 @@ bool CTransaction::CheckTransaction() const
     if (vout.empty())
         return DoS(10, error("CTransaction::CheckTransaction() : vout empty"));
     // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
+    if (GetAdjustedTime() > XBLOCK_V2_TIME)
         MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
+        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
     // Size limits
     if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
@@ -560,8 +561,7 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
             if (txout.nValue < CENT)
                 nMinFee = nBaseFee;
     }
-    // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
+    if (GetAdjustedTime() > XBLOCK_V2_TIME)
         MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
         MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
@@ -2049,7 +2049,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
     // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
+    if (GetAdjustedTime() > XBLOCK_V2_TIME)
         MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
         MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
     // Size limits
@@ -2741,7 +2741,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
 {
     int64 nStart = GetTimeMillis();
     // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
+    if (GetAdjustedTime() > XBLOCK_V2_TIME)
         MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
         MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
@@ -4875,7 +4875,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     pblock->vtx.push_back(txNew);
 
     // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
+    if (GetAdjustedTime() > XBLOCK_V2_TIME)
         MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
         MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
