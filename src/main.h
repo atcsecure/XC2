@@ -29,6 +29,7 @@ class CNode;
 
 #define POW_CUTOFF_HEIGHT 21000
 
+static const unsigned int XBLOCK_V2_HEIGHT = 775000; // Block to switch to v2 xblock
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZEv2 = 4096000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
