@@ -61,9 +61,6 @@ unsigned int nStakeMinAge = 60 * 60 * 8;	// minimum age for coin age: 3h
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: -1
 unsigned int nStakeTargetSpacing = 90;			// 90 sec block spacing
 
-unsigned int tMAX_BLOCK_SIZE = 1000000;
-unsigned int tMAX_BLOCK_SIZE_GEN = tMAX_BLOCK_SIZE/2;
-
 int64 nChainStartTime = 1399495660;
 int nCoinbaseMaturity = 160;
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -496,11 +493,11 @@ bool CTransaction::CheckTransaction() const
         return DoS(10, error("CTransaction::CheckTransaction() : vout empty"));
     // v2 check
     if (GetAdjustedTime() > XBLOCK_V2_TIME)
-        tMAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        tMAX_BLOCK_SIZE_GEN = tMAX_BLOCK_SIZE/2;
+        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
+        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
     // Size limits
-    if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > tMAX_BLOCK_SIZE)
+    if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
 
     // Check for negative or overflow output values
@@ -565,14 +562,14 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
                 nMinFee = nBaseFee;
     }
     if (GetAdjustedTime() > XBLOCK_V2_TIME)
-        tMAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        tMAX_BLOCK_SIZE_GEN = tMAX_BLOCK_SIZE/2;
+        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
+        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
-    if (nBlockSize != 1 && nNewBlockSize >= tMAX_BLOCK_SIZE_GEN/2)
+    if (nBlockSize != 1 && nNewBlockSize >= MAX_BLOCK_SIZE_GEN/2)
     {
-        if (nNewBlockSize >= tMAX_BLOCK_SIZE_GEN)
+        if (nNewBlockSize >= MAX_BLOCK_SIZE_GEN)
             return MAX_MONEY;
-        nMinFee *= tMAX_BLOCK_SIZE_GEN / (tMAX_BLOCK_SIZE_GEN - nNewBlockSize);
+        nMinFee *= MAX_BLOCK_SIZE_GEN / (MAX_BLOCK_SIZE_GEN - nNewBlockSize);
     }
 
     if (!MoneyRange(nMinFee))
@@ -2053,10 +2050,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     // that can be verified before saving an orphan block.
     // v2 check
     if (GetAdjustedTime() > XBLOCK_V2_TIME)
-        tMAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        tMAX_BLOCK_SIZE_GEN = tMAX_BLOCK_SIZE/2;
+        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
+        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
     // Size limits
-    if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > tMAX_BLOCK_SIZE)
+    if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CheckBlock() : size limits failed"));
 
     // Check proof of work matches claimed amount
@@ -2745,8 +2742,8 @@ bool LoadExternalBlockFile(FILE* fileIn)
     int64 nStart = GetTimeMillis();
     // v2 check
     if (GetAdjustedTime() > XBLOCK_V2_TIME)
-        tMAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        tMAX_BLOCK_SIZE_GEN = tMAX_BLOCK_SIZE/2;
+        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
+        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
     int nLoaded = 0;
     {
@@ -2783,7 +2780,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
                 fseek(blkdat, nPos, SEEK_SET);
                 unsigned int nSize;
                 blkdat >> nSize;
-                if (nSize > 0 && nSize <= tMAX_BLOCK_SIZE)
+                if (nSize > 0 && nSize <= MAX_BLOCK_SIZE)
                 {
                     CBlock block;
                     blkdat >> block;
@@ -4879,12 +4876,12 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
     // v2 check
     if (GetAdjustedTime() > XBLOCK_V2_TIME)
-        tMAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        tMAX_BLOCK_SIZE_GEN = tMAX_BLOCK_SIZE/2;
+        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
+        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
 
     // Largest block you're willing to create:
-    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", tMAX_BLOCK_SIZE_GEN/2);
+    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", MAX_BLOCK_SIZE_GEN/2);
     // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
     nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE-1000), nBlockMaxSize));
 
