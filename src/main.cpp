@@ -491,10 +491,6 @@ bool CTransaction::CheckTransaction() const
         return DoS(10, error("CTransaction::CheckTransaction() : vin empty"));
     if (vout.empty())
         return DoS(10, error("CTransaction::CheckTransaction() : vout empty"));
-    // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
-        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-
     // Size limits
     if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
@@ -560,11 +556,8 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
             if (txout.nValue < CENT)
                 nMinFee = nBaseFee;
     }
-    // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
-        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
+    // Raise the price as the block approaches full
     if (nBlockSize != 1 && nNewBlockSize >= MAX_BLOCK_SIZE_GEN/2)
     {
         if (nNewBlockSize >= MAX_BLOCK_SIZE_GEN)
@@ -2048,10 +2041,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
 {
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
-    // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
-        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CheckBlock() : size limits failed"));
@@ -2740,10 +2729,6 @@ void PrintBlockTree()
 bool LoadExternalBlockFile(FILE* fileIn)
 {
     int64 nStart = GetTimeMillis();
-    // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
-        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 
     int nLoaded = 0;
     {
@@ -4873,12 +4858,6 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
     // Add our coinbase tx as first transaction
     pblock->vtx.push_back(txNew);
-
-    // v2 check
-    if (nHeight > XBLOCK_V2_HEIGHT)
-        MAX_BLOCK_SIZE = MAX_BLOCK_SIZEv2;
-        MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
-
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", MAX_BLOCK_SIZE_GEN/2);
