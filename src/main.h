@@ -27,13 +27,37 @@ class CRequestTracker;
 class CNode;
 
 
+static const uint64_t FORK_TIME = 1467331200; // 1 July 2016 00:00:00 UTC
+
 #define POW_CUTOFF_HEIGHT 21000
 
-static const unsigned int MAX_BLOCK_SIZE = 1000000;
-static const unsigned int MAX_BLOCK_SIZEv2 = 4096000;
-static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
-static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
-static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
+// static const unsigned int MAX_BLOCK_SIZE = 1000000;
+inline unsigned int MaxBlockSize(uint64_t blockTimestamp)
+{
+    return (blockTimestamp < FORK_TIME ? 1000000 : 4*1000*1000);
+}
+
+// static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
+inline unsigned int MaxBlockSizeGen(uint64_t blockTimestamp)
+{
+    return MaxBlockSize(blockTimestamp)/2;
+}
+
+// static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
+inline unsigned int MaxBlockSigops(uint64_t blockTimestamp)
+{
+    return MaxBlockSize(blockTimestamp)/50;
+}
+
+// static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
+inline unsigned int MaxOrphanTransactions(uint64_t blockTimestamp)
+{
+    return MaxBlockSize(blockTimestamp)/100;
+}
+
+/** The maximum allowed size for a serialized transaction, in bytes */
+static const unsigned int MAX_TRANSACTION_SIZE = 1000*1000;
+
 static const unsigned int MAX_ORPHAN_TRANSACTIONSv2 = 100;
 static const unsigned int MAX_INV_SZ = 30000;
 static const int64 MIN_TX_FEE = .00001 * COIN;
