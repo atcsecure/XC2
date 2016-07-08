@@ -27,7 +27,7 @@ class CRequestTracker;
 class CNode;
 
 
-static const uint64_t FORK_TIME = 1467331200; // 1 July 2016 00:00:00 UTC
+static const uint64_t FORK_TIME = 1472738438; // 1 Sept 2016 10:00:00 EST
 
 #define POW_CUTOFF_HEIGHT 21000
 
