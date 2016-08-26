@@ -205,23 +205,32 @@ Value listunspent(const Array& params, bool fHelp)
 
 Value createrawtransaction(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 2)
+    if (fHelp || params.size() < 2 || params.size() > 3)
         throw runtime_error(
-            "createrawtransaction [{\"txid\":txid,\"vout\":n},...] {\"data\":\"<Message>\",address:amount,...}\n"
+            "createrawtransaction [{\"txid\":txid,\"vout\":n},...] {\"data\":\"<Message>\",address:amount,...} (locktime)\n"
             "Create a transaction spending given inputs\n"
             "(array of objects containing transaction id and output number),\n"
             "Message is Hex encoded for use with OP_RETURN Limit of 253bytes\n"
             "sending to given address(es).\n"
             "Returns hex-encoded raw transaction.\n"
             "Note that the transaction's inputs are not signed, and\n"
-            "it is not stored in the wallet or transmitted to the network.");
+            "it is not stored in the wallet or transmitted to the network.\n"
+            "Locktime is optional, default=0. Non-0 value also locktime-activates inputs.");
 
-    RPCTypeCheck(params, list_of(array_type)(obj_type));
+    RPCTypeCheck(params, list_of(array_type)(obj_type)(int_type));
 
-    Array inputs = params[0].get_array();
+    Array  inputs = params[0].get_array();
     Object sendTo = params[1].get_obj();
 
     CTransaction rawTx;
+
+    if (params.size() > 2)
+    {
+        int64_t nLockTime = params[2].get_int64();
+        if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, locktime out of range");
+        rawTx.nLockTime = nLockTime;
+    }
 
     BOOST_FOREACH(Value& input, inputs)
     {
