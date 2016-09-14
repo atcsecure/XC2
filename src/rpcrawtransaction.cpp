@@ -272,18 +272,21 @@ Value createrawtransaction(const Array& params, bool fHelp)
         uint32_t nSequence = (rawTx.nLockTime ? std::numeric_limits<uint32_t>::max() - 1 : std::numeric_limits<uint32_t>::max());
 
         // set the sequence number if passed in the parameters object
-        const UniValue& sequenceObj = find_value(o, "sequence");
-        if (sequenceObj.isNum()) {
+        const Value & sequenceObj = find_value(o, "sequence");
+        if (sequenceObj.type() == int_type)
+        {
             int64_t seqNr64 = sequenceObj.get_int64();
             if (seqNr64 < 0 || seqNr64 > std::numeric_limits<uint32_t>::max())
+            {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, sequence number is out of range");
+            }
             else
+            {
                 nSequence = (uint32_t)seqNr64;
+            }
         }
 
         CTxIn in(COutPoint(txid, nOutput), CScript(), nSequence);
-
-        CTxIn in(COutPoint(uint256(txid), nOutput));
         rawTx.vin.push_back(in);
     }
 
