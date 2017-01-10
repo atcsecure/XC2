@@ -210,7 +210,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
             "createrawtransaction [{\"txid\":txid,\"vout\":n},...] {\"data\":\"<Message>\",address:amount,...}\n"
             "Create a transaction spending given inputs\n"
             "(array of objects containing transaction id and output number),\n"
-            "Message is Hex encoded for use with OP_RETURN Limit of 253bytes\n"
+            "Message is Hex encoded for use with OP_RETURN Limit of 25300bytes\n"
             "sending to given address(es).\n"
             "Returns hex-encoded raw transaction.\n"
             "Note that the transaction's inputs are not signed, and\n"
@@ -251,8 +251,8 @@ Value createrawtransaction(const Array& params, bool fHelp)
         if (s.name_ == string("data"))
         {
             std::vector<unsigned char> data = ParseHex(s.value_.get_str());
-            if(data.size()>126)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Message length greater than 253");
+            if(data.size()>12600)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Message length greater than 25300");
 
             CTxOut out(0,CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
