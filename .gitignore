@@ -2,9 +2,7 @@ config.pri
 me.bat
 nbproject/
 src/XCurrencyd
-Makefile
 qrc_bitcoin.cpp
-Makefile.*
 *.Debug
 *.Release
 
