@@ -17,13 +17,19 @@
 #include "coincontroldialog.h"
 #include "bitcoinrpc.h"
 
+#include "json/json_spirit.h"
+
 #include <QMessageBox>
 #include <QLocale>
 #include <QTextDocument>
 #include <QScrollBar>
 #include <QClipboard>
+#include <QFileDialog>
+#include <QFile>
 
 #include <boost/lexical_cast.hpp>
+
+using namespace json_spirit;
 
 //*****************************************************************************
 //*****************************************************************************
@@ -33,6 +39,8 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
     model(0)
 {
     ui->setupUi(this);
+
+    on_txWithImage_clicked();
 
     // disable "secure transactions" when distmix autonode enabled
     if (GetBoolArg("-distmix-autonode"))
@@ -213,6 +221,14 @@ void SendCoinsDialog::on_sendButton_clicked()
             ui->checkDistmix->setChecked(false);
             ui->checkDistmix->setEnabled(false);
         }
+        return;
+    }
+    else if (ui->txWithImage->isChecked())
+    {
+        setEnabledForProcessing(false);
+
+        processPaymentsWithImage();
+
         return;
     }
 
@@ -814,3 +830,193 @@ void SendCoinsDialog::setEnabledForProcessing(const bool isEnabled)
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
+void SendCoinsDialog::on_checkDistmix_clicked()
+{
+    bool checked = (ui->txWithImage->checkState() == Qt::Checked);
+    if (checked)
+    {
+        ui->txWithImage->setChecked(false);
+    }
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void SendCoinsDialog::on_txWithImage_clicked()
+{
+    bool checked = (ui->txWithImage->checkState() == Qt::Checked);
+    if (checked)
+    {
+        ui->checkDistmix->setChecked(false);
+    }
+    ui->imagePath->setEnabled(checked);
+    ui->selectImageButton->setEnabled(checked);
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void SendCoinsDialog::on_selectImageButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    trUtf8("Select image"),
+                                                    trUtf8("Select image for send"),
+                                                    trUtf8("Image files (*.jpg *.jpeg);;All files (*.*)"));
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    ui->imagePath->setText(fileName);
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void SendCoinsDialog::processPaymentsWithImage()
+{
+    const static std::string createCommand("createrawtransaction");
+    const static std::string signCommand("signrawtransaction");
+    const static std::string sendCommand("sendrawtransaction");
+
+    int errCode = 0;
+    std::string errMessage;
+
+    try
+    {
+        SendCoinsRecipient rcp = m_sendEntries.front()->getValue();
+
+        std::map<QString, std::vector<COutput> > coins;
+        model->listCoins(coins);
+
+        std::vector<COutput> used;
+
+        int64_t amount = 0;
+        for (const std::pair<QString, std::vector<COutput> > & item : coins)
+        {
+            for (const COutput & out : item.second)
+            {
+                amount += out.tx->vout[out.i].nValue;
+
+                used.push_back(out);
+
+                if (amount >= rcp.amount + nTransactionFee)
+                {
+                    break;
+                }
+            }
+
+            if (amount >= rcp.amount + nTransactionFee)
+            {
+                break;
+            }
+        }
+
+        if (amount < rcp.amount + nTransactionFee)
+        {
+            throw std::runtime_error("No money");
+        }
+
+        Array inputs;
+        for (const COutput & out : used)
+        {
+            Object tmp;
+            tmp.push_back(Pair("txid", out.tx->GetHash().ToString()));
+            tmp.push_back(Pair("vout", out.i));
+            inputs.push_back(tmp);
+        }
+
+        Object outputs;
+        {
+            // add image
+            QFileInfo inf(ui->imagePath->text());
+            if (!inf.exists())
+            {
+                throw std::runtime_error("File not found");
+            }
+            if (inf.size() > 1024*1024)
+            {
+                // size must be less than 1M
+                throw std::runtime_error("Image file size too big");
+            }
+
+            {
+                QFile f(inf.absoluteFilePath());
+                if (!f.open(QFile::ReadOnly))
+                {
+                    throw std::runtime_error("File not opened");
+                }
+
+                QByteArray data = f.readAll();
+
+                std::string strdata = HexStr(data.begin(), data.end());
+
+                outputs.push_back(Pair("data", strdata));
+            }
+        }
+        outputs.push_back(Pair(rcp.address.toStdString(), rcp.amount));
+
+        Value result;
+
+        {
+            Array params;
+            params.push_back(inputs);
+            params.push_back(outputs);
+
+            // call create
+            result = tableRPC.execute(createCommand, params);
+            if (result.type() != str_type)
+            {
+                throw std::runtime_error("Create transaction failed");
+            }
+        }
+
+        {
+            std::vector<std::string> params;
+
+            std::string rawtx = result.get_str();
+            params.push_back(rawtx);
+
+            result = tableRPC.execute(signCommand, RPCConvertValues(signCommand, params));
+            if (result.type() != str_type)
+            {
+                throw std::runtime_error("Sign transaction failed");
+            }
+        }
+
+        {
+            std::string rawtx = result.get_str();
+
+            std::vector<std::string> params;
+            params.push_back(rawtx);
+
+            result = tableRPC.execute(sendCommand, RPCConvertValues(sendCommand, params));
+        }
+    }
+    catch (json_spirit::Object & obj)
+    {
+        //
+        errCode = find_value(obj, "code").get_int();
+        errMessage = find_value(obj, "message").get_str();
+
+    }
+    catch (std::runtime_error & e)
+    {
+        // specified error
+        errCode = -1;
+        errMessage = e.what();
+    }
+    catch (...)
+    {
+        errCode = -1;
+        errMessage = "unknown error";
+    }
+
+    if (errCode != 0)
+    {
+        QMessageBox::warning(this, trUtf8("Send Coins"),
+            trUtf8("Failed, code %1\n%2").arg(QString::number(errCode), QString::fromStdString(errMessage)),
+            QMessageBox::Ok, QMessageBox::Ok);
+    }
+
+    setEnabledForProcessing(true);
+}

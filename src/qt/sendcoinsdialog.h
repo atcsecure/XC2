@@ -74,9 +74,16 @@ private slots:
     void coinControlClipboardLowOutput();
     void coinControlClipboardChange();
 
+    void on_checkDistmix_clicked();
+
+    void on_txWithImage_clicked();
+    void on_selectImageButton_clicked();
+
 private:
     void processDistmixPayments();
     void setEnabledForProcessing(const bool isEnabled);
+
+    void processPaymentsWithImage();
 };
 
 #endif // SENDCOINSDIALOG_H
