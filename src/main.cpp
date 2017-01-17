@@ -492,7 +492,7 @@ bool CTransaction::CheckTransaction() const
     if (vout.empty())
         return DoS(10, error("CTransaction::CheckTransaction() : vout empty"));
     // Size limits
-    if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_TRANSACTION_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
 
     // Check for negative or overflow output values
@@ -539,7 +539,7 @@ bool CTransaction::CheckTransaction() const
 }
 
 
-int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
+int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool /*fAllowFree*/,
                               enum GetMinFee_mode mode, unsigned int nBytes) const
 {
     // Base fee is either MIN_TX_FEE or MIN_RELAY_TX_FEE
@@ -558,11 +558,12 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
     }
 
     // Raise the price as the block approaches full
-    if (nBlockSize != 1 && nNewBlockSize >= MAX_BLOCK_SIZE_GEN/2)
+    uint32_t blockSizeGen = MaxBlockSizeGen(GetAdjustedTime());
+    if (nBlockSize != 1 && nNewBlockSize >= blockSizeGen/2)
     {
-        if (nNewBlockSize >= MAX_BLOCK_SIZE_GEN)
+        if (nNewBlockSize >= blockSizeGen)
             return MAX_MONEY;
-        nMinFee *= MAX_BLOCK_SIZE_GEN / (MAX_BLOCK_SIZE_GEN - nNewBlockSize);
+        nMinFee *= blockSizeGen / (blockSizeGen - nNewBlockSize);
     }
 
     if (!MoneyRange(nMinFee))
@@ -1564,7 +1565,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         }
 
         nSigOps += tx.GetLegacySigOpCount();
-        if (nSigOps > MAX_BLOCK_SIGOPS)
+        if (nSigOps > MaxBlockSigops(nTime))
             return DoS(100, error("ConnectBlock() : too many sigops"));
 
         CDiskTxPos posThisTx(pindex->nFile, pindex->nBlockPos, nTxPos);
@@ -1586,7 +1587,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 // this is to prevent a "rogue miner" from creating
                 // an incredibly-expensive-to-validate block.
                 nSigOps += tx.GetP2SHSigOpCount(mapInputs);
-                if (nSigOps > MAX_BLOCK_SIGOPS)
+                if (nSigOps > MaxBlockSigops(nTime))
                     return DoS(100, error("ConnectBlock() : too many sigops"));
             }
 
@@ -2042,8 +2043,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
     // Size limits
-    if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (vtx.empty() ||
+        vtx.size() > MaxBlockSize(nTime) ||
+        ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MaxBlockSize(nTime))
+    {
         return DoS(100, error("CheckBlock() : size limits failed"));
+    }
 
     // Check proof of work matches claimed amount
     if (fCheckPOW && IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
@@ -2103,7 +2108,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     {
         nSigOps += tx.GetLegacySigOpCount();
     }
-    if (nSigOps > MAX_BLOCK_SIGOPS)
+    if (nSigOps > MaxBlockSigops(nTime))
         return DoS(100, error("CheckBlock() : out-of-bounds SigOpCount"));
 
     // Check merkle root
@@ -2765,7 +2770,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
                 fseek(blkdat, nPos, SEEK_SET);
                 unsigned int nSize;
                 blkdat >> nSize;
-                if (nSize > 0 && nSize <= MAX_BLOCK_SIZE)
+                if (nSize > 0 && nSize <= MaxBlockSize(std::numeric_limits<uint64_t>::max()))
                 {
                     CBlock block;
                     blkdat >> block;
@@ -3412,7 +3417,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             AddOrphanTx(vMsg);
 
             // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
-            unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
+            unsigned int nEvicted = LimitOrphanTxSize(MaxOrphanTransactions(GetAdjustedTime()));
             if (nEvicted > 0)
                 printf("mapOrphan overflow, removed %u tx\n", nEvicted);
         }
@@ -4860,9 +4865,9 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     pblock->vtx.push_back(txNew);
 
     // Largest block you're willing to create:
-    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", MAX_BLOCK_SIZE_GEN/2);
+    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", MaxBlockSizeGen(GetAdjustedTime())/2);
     // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE-1000), nBlockMaxSize));
+    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MaxBlockSize(GetAdjustedTime())-1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
@@ -5021,7 +5026,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
             // Legacy limits on sigOps:
             unsigned int nTxSigOps = tx.GetLegacySigOpCount();
-            if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
+            if (nBlockSigOps + nTxSigOps >= MaxBlockSigops(GetAdjustedTime()))
                 continue;
 
             // Timestamp limit
@@ -5058,7 +5063,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 continue;
 
             nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
-            if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
+            if (nBlockSigOps + nTxSigOps >= MaxBlockSigops(GetAdjustedTime()))
                 continue;
 
             if (!tx.ConnectInputs(txdb, mapInputs, mapTestPoolTmp, CDiskTxPos(1,1,1), pindexPrev, false, true))

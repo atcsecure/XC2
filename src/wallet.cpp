@@ -1341,7 +1341,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
 
                 // Limit size
                 unsigned int nBytes = ::GetSerializeSize(*(CTransaction*)&wtxNew, SER_NETWORK, PROTOCOL_VERSION);
-                if (nBytes >= MAX_BLOCK_SIZE_GEN/5)
+                if (nBytes >= MaxBlockSizeGen(GetAdjustedTime())/5)
                     return false;
                 dPriority /= nBytes;
 
@@ -1624,7 +1624,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         // Limit size
         unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
-        if (nBytes >= MAX_BLOCK_SIZE_GEN/5)
+        if (nBytes >= MaxBlockSizeGen(GetAdjustedTime())/5)
             return error("CreateCoinStake : exceeded coinstake size limit");
 
         // Check enough fee is paid
