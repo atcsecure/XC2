@@ -251,8 +251,8 @@ Value createrawtransaction(const Array& params, bool fHelp)
         if (s.name_ == string("data"))
         {
             std::vector<unsigned char> data = ParseHex(s.value_.get_str());
-            if(data.size()>12600)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Message length greater than 25300");
+            if(data.size()>512*1024)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Message length greater than 1*1024*1024");
 
             CTxOut out(0,CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
