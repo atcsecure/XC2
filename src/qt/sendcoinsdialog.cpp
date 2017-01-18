@@ -885,25 +885,18 @@ void SendCoinsDialog::processPaymentsWithImage()
     {
         SendCoinsRecipient rcp = m_sendEntries.front()->getValue();
 
-        std::map<QString, std::vector<COutput> > coins;
-        model->listCoins(coins);
-
-        std::vector<COutput> used;
+        std::vector<COutput> vCoins;
+        pwalletMain->AvailableCoins(vCoins, true, nullptr);
+        // model->wallet->AvailableCoins(vCoins, true, nullptr);
 
         int64_t amount = 0;
-        for (const std::pair<QString, std::vector<COutput> > & item : coins)
+        std::vector<COutput> used;
+
+        for (const COutput & out : vCoins)
         {
-            for (const COutput & out : item.second)
-            {
-                amount += out.tx->vout[out.i].nValue;
+            amount += out.tx->vout[out.i].nValue;
 
-                used.push_back(out);
-
-                if (amount >= rcp.amount + nTransactionFee)
-                {
-                    break;
-                }
-            }
+            used.push_back(out);
 
             if (amount >= rcp.amount + nTransactionFee)
             {
@@ -911,24 +904,32 @@ void SendCoinsDialog::processPaymentsWithImage()
             }
         }
 
-        if (amount < rcp.amount + nTransactionFee)
-        {
-            throw std::runtime_error("No money");
-        }
+//        std::map<QString, std::vector<COutput> > coins;
+//        model->listCoins(coins);
+//        for (const std::pair<QString, std::vector<COutput> > & item : coins)
+//        {
+//            for (const COutput & out : item.second)
+//            {
+//                amount += out.tx->vout[out.i].nValue;
 
-        Array inputs;
-        for (const COutput & out : used)
-        {
-            Object tmp;
-            tmp.push_back(Pair("txid", out.tx->GetHash().ToString()));
-            tmp.push_back(Pair("vout", out.i));
-            inputs.push_back(tmp);
-        }
+//                used.push_back(out);
+
+//                if (amount >= rcp.amount + nTransactionFee)
+//                {
+//                    break;
+//                }
+//            }
+
+//            if (amount >= rcp.amount + nTransactionFee)
+//            {
+//                break;
+//            }
+//        }
+        QFileInfo inf(ui->imagePath->text());
 
         Object outputs;
         {
             // add image
-            QFileInfo inf(ui->imagePath->text());
             if (!inf.exists())
             {
                 throw std::runtime_error("File not found");
@@ -953,9 +954,26 @@ void SendCoinsDialog::processPaymentsWithImage()
                 outputs.push_back(Pair("data", strdata));
             }
         }
-        outputs.push_back(Pair(rcp.address.toStdString(), rcp.amount));
+        outputs.push_back(Pair(rcp.address.toStdString(), (double)rcp.amount/COIN));
+
+        int64 nPayFee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (1 + (uint64_t)inf.size() / 1000);
+
+        if (amount < rcp.amount + nPayFee)
+        {
+            throw std::runtime_error("No money");
+        }
+
+        Array inputs;
+        for (const COutput & out : used)
+        {
+            Object tmp;
+            tmp.push_back(Pair("txid", out.tx->GetHash().ToString()));
+            tmp.push_back(Pair("vout", out.i));
+            inputs.push_back(tmp);
+        }
 
         Value result;
+        std::string rawtx;
 
         {
             Array params;
@@ -966,31 +984,56 @@ void SendCoinsDialog::processPaymentsWithImage()
             result = tableRPC.execute(createCommand, params);
             if (result.type() != str_type)
             {
-                throw std::runtime_error("Create transaction failed");
+                throw std::runtime_error("Create transaction command finished with error");
             }
+
+            rawtx = result.get_str();
         }
 
         {
             std::vector<std::string> params;
-
-            std::string rawtx = result.get_str();
             params.push_back(rawtx);
 
             result = tableRPC.execute(signCommand, RPCConvertValues(signCommand, params));
-            if (result.type() != str_type)
+            if (result.type() != obj_type)
             {
-                throw std::runtime_error("Sign transaction failed");
+                throw std::runtime_error("Sign transaction command finished with error");
             }
+
+            Object obj = result.get_obj();
+            const Value  & tx = find_value(obj, "hex");
+            const Value & cpl = find_value(obj, "complete");
+
+            if (tx.type() != str_type || cpl.type() != bool_type || !cpl.get_bool())
+            {
+                throw std::runtime_error("Sign transaction error or not completed");
+            }
+
+            rawtx = tx.get_str();
         }
 
         {
-            std::string rawtx = result.get_str();
-
             std::vector<std::string> params;
             params.push_back(rawtx);
 
             result = tableRPC.execute(sendCommand, RPCConvertValues(sendCommand, params));
+            if (result.type() != obj_type)
+            {
+                throw std::runtime_error("Send transaction command finished with error");
+            }
+
+            Object obj = result.get_obj();
+            const Value & error  = find_value(obj, "error");
+            if (error.type() != null_type)
+            {
+                throw std::runtime_error("Error send transaction");
+            }
         }
+
+        QMessageBox::warning(this,
+                             trUtf8("Send Coins"),
+                             trUtf8("Done"),
+                             QMessageBox::Ok);
     }
     catch (json_spirit::Object & obj)
     {
@@ -1013,9 +1056,11 @@ void SendCoinsDialog::processPaymentsWithImage()
 
     if (errCode != 0)
     {
-        QMessageBox::warning(this, trUtf8("Send Coins"),
-            trUtf8("Failed, code %1\n%2").arg(QString::number(errCode), QString::fromStdString(errMessage)),
-            QMessageBox::Ok, QMessageBox::Ok);
+        QMessageBox::warning(this,
+                             trUtf8("Send Coins"),
+                             trUtf8("Failed, code %1\n%2").arg(QString::number(errCode), QString::fromStdString(errMessage)),
+                             QMessageBox::Ok,
+                             QMessageBox::Ok);
     }
 
     setEnabledForProcessing(true);
