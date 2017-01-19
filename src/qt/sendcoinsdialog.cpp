@@ -883,27 +883,6 @@ void SendCoinsDialog::processPaymentsWithImage()
 
     try
     {
-        SendCoinsRecipient rcp = m_sendEntries.front()->getValue();
-
-        std::vector<COutput> vCoins;
-        pwalletMain->AvailableCoins(vCoins, true, nullptr);
-        // model->wallet->AvailableCoins(vCoins, true, nullptr);
-
-        int64_t amount = 0;
-        std::vector<COutput> used;
-
-        for (const COutput & out : vCoins)
-        {
-            amount += out.tx->vout[out.i].nValue;
-
-            used.push_back(out);
-
-            if (amount >= rcp.amount + nTransactionFee)
-            {
-                break;
-            }
-        }
-
 //        std::map<QString, std::vector<COutput> > coins;
 //        model->listCoins(coins);
 //        for (const std::pair<QString, std::vector<COutput> > & item : coins)
@@ -954,9 +933,30 @@ void SendCoinsDialog::processPaymentsWithImage()
                 outputs.push_back(Pair("data", strdata));
             }
         }
+
+        SendCoinsRecipient rcp = m_sendEntries.front()->getValue();
         outputs.push_back(Pair(rcp.address.toStdString(), (double)rcp.amount/COIN));
 
         int64 nPayFee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (1 + (uint64_t)inf.size() / 1000);
+
+        std::vector<COutput> vCoins;
+        pwalletMain->AvailableCoins(vCoins, true, nullptr);
+        // model->wallet->AvailableCoins(vCoins, true, nullptr);
+
+        int64_t amount = 0;
+        std::vector<COutput> used;
+
+        for (const COutput & out : vCoins)
+        {
+            amount += out.tx->vout[out.i].nValue;
+
+            used.push_back(out);
+
+            if (amount >= rcp.amount + nPayFee)
+            {
+                break;
+            }
+        }
 
         if (amount < rcp.amount + nPayFee)
         {
@@ -1017,23 +1017,16 @@ void SendCoinsDialog::processPaymentsWithImage()
             params.push_back(rawtx);
 
             result = tableRPC.execute(sendCommand, RPCConvertValues(sendCommand, params));
-            if (result.type() != obj_type)
+            if (result.type() != str_type)
             {
                 throw std::runtime_error("Send transaction command finished with error");
             }
-
-            Object obj = result.get_obj();
-            const Value & error  = find_value(obj, "error");
-            if (error.type() != null_type)
-            {
-                throw std::runtime_error("Error send transaction");
-            }
         }
 
-        QMessageBox::warning(this,
-                             trUtf8("Send Coins"),
-                             trUtf8("Done"),
-                             QMessageBox::Ok);
+        QMessageBox::information(this,
+                                 trUtf8("Send Coins"),
+                                 trUtf8("Done"),
+                                 QMessageBox::Ok);
     }
     catch (json_spirit::Object & obj)
     {
