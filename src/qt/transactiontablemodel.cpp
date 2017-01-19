@@ -223,7 +223,7 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
         priv(new TransactionTablePriv(wallet, this)),
         cachedNumBlocks(0)
 {
-    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Amount");
+    columns << QString() << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Amount");
 
     priv->refreshWallet();
 
@@ -390,6 +390,26 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     return QVariant();
 }
 
+QVariant TransactionTableModel::txDataDecoration(const TransactionRecord * wtx) const
+{
+    CWalletTx tx;
+    if (!wallet->GetTransaction(wtx->hash, tx))
+    {
+        return QVariant();
+    }
+
+    const std::vector<CTxOut> & vout = tx.vout;
+    for (const CTxOut & out : vout)
+    {
+        if (out.scriptPubKey.Find(OP_RETURN) > 0)
+        {
+            return QIcon(":/icons/transaction_confirmed");
+        }
+    }
+
+    return QVariant();
+}
+
 QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const
 {
     switch(wtx->type)
@@ -511,6 +531,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         {
         case Status:
             return txStatusDecoration(rec);
+        case DataMarker:
+            return txDataDecoration(rec);
         case ToAddress:
             return txAddressDecoration(rec);
         }
@@ -604,6 +626,8 @@ QVariant TransactionTableModel::headerData(int section, Qt::Orientation orientat
             {
             case Status:
                 return tr("Transaction status. Hover over this field to show number of confirmations.");
+            case DataMarker:
+                return tr("Contains data in transaction");
             case Date:
                 return tr("Date and time that the transaction was received.");
             case Type:

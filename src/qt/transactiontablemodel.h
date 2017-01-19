@@ -20,10 +20,11 @@ public:
 
     enum ColumnIndex {
         Status = 0,
-        Date = 1,
-        Type = 2,
-        ToAddress = 3,
-        Amount = 4
+        DataMarker = 1,
+        Date = 2,
+        Type = 3,
+        ToAddress = 4,
+        Amount = 5
     };
 
     /** Roles to get specific information from a transaction row.
@@ -72,6 +73,7 @@ private:
     QString formatTooltip(const TransactionRecord *rec) const;
     QVariant txStatusDecoration(const TransactionRecord *wtx) const;
     QVariant txAddressDecoration(const TransactionRecord *wtx) const;
+    QVariant txDataDecoration(const TransactionRecord *wtx) const;
 
 public slots:
     void updateTransaction(const QString &hash, int status);
