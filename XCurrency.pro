@@ -11,12 +11,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += thread
 CONFIG += C++11
 !macx:CONFIG += static
-#!include($$PWD/config.pri) {
-#    error(Failed to include config.pri)
-#}
+!macx:!include($$PWD/config.pri) {
+    error(Failed to include config.pri)
+}
 
 withoutgui {
-    message(no gui build)
+    message(Build without gui)
 
     DEFINES -= QT_GUI
     CONFIG += console
