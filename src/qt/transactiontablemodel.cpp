@@ -1,3 +1,6 @@
+//*****************************************************************************
+//*****************************************************************************
+
 #include "transactiontablemodel.h"
 #include "guiutil.h"
 #include "transactionrecord.h"
@@ -18,8 +21,11 @@
 #include <QIcon>
 #include <QDateTime>
 #include <QtAlgorithms>
+#include <QDebug>
 
+//*****************************************************************************
 // Amount column is right-aligned it contains numbers
+//*****************************************************************************
 static int column_alignments[] = {
         Qt::AlignLeft|Qt::AlignVCenter,
         Qt::AlignLeft|Qt::AlignVCenter,
@@ -28,7 +34,9 @@ static int column_alignments[] = {
         Qt::AlignRight|Qt::AlignVCenter
     };
 
+//*****************************************************************************
 // Comparison operator for sort/binary search of model tx list
+//*****************************************************************************
 struct TxLessThan
 {
     bool operator()(const TransactionRecord &a, const TransactionRecord &b) const
@@ -45,7 +53,9 @@ struct TxLessThan
     }
 };
 
+//*****************************************************************************
 // Private implementation
+//*****************************************************************************
 class TransactionTablePriv
 {
 public:
@@ -216,6 +226,8 @@ public:
 
 };
 
+//*****************************************************************************
+//*****************************************************************************
 TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *parent):
         QAbstractTableModel(parent),
         wallet(wallet),
@@ -234,11 +246,15 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
     connect(walletModel->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 }
 
+//*****************************************************************************
+//*****************************************************************************
 TransactionTableModel::~TransactionTableModel()
 {
     delete priv;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void TransactionTableModel::updateTransaction(const QString &hash, int status)
 {
     uint256 updated;
@@ -247,6 +263,8 @@ void TransactionTableModel::updateTransaction(const QString &hash, int status)
     priv->updateWallet(updated, status);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void TransactionTableModel::updateConfirmations()
 {
     if(nBestHeight != cachedNumBlocks)
@@ -261,18 +279,24 @@ void TransactionTableModel::updateConfirmations()
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 int TransactionTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return priv->size();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 int TransactionTableModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return columns.length();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) const
 {
     QString status;
@@ -316,6 +340,8 @@ QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) cons
     return status;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QString TransactionTableModel::formatTxDate(const TransactionRecord *wtx) const
 {
     if(wtx->time)
@@ -328,9 +354,11 @@ QString TransactionTableModel::formatTxDate(const TransactionRecord *wtx) const
     }
 }
 
+//*****************************************************************************
 /* Look up address in address book, if found return label (address)
    otherwise just return (address)
  */
+//*****************************************************************************
 QString TransactionTableModel::lookupAddress(const std::string &address, bool tooltip) const
 {
     QString label = walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(address));
@@ -346,6 +374,8 @@ QString TransactionTableModel::lookupAddress(const std::string &address, bool to
     return description;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
 {
     switch(wtx->type)
@@ -367,6 +397,8 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx) const
 {
     switch(wtx->type)
@@ -390,6 +422,8 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     return QVariant();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QVariant TransactionTableModel::txDataDecoration(const TransactionRecord * wtx) const
 {
     CWalletTx tx;
@@ -410,6 +444,50 @@ QVariant TransactionTableModel::txDataDecoration(const TransactionRecord * wtx) 
     return QVariant();
 }
 
+//*****************************************************************************
+//*****************************************************************************
+QVariant TransactionTableModel::txData(const TransactionRecord * txr) const
+{
+    CTransaction tx;
+    uint256 block;
+    if (!GetTransaction(txr->hash, tx, block))
+    {
+        return QVariant();
+    }
+
+    qDebug() << Q_FUNC_INFO;
+    qDebug() << txr->hash.ToString().c_str();
+    qDebug() << tx.GetHash().ToString().c_str();
+
+    uint32_t cnt = 0;
+    const std::vector<CTxOut> & vout = tx.vout;
+    for (const CTxOut & out : vout)
+    {
+        auto it = out.scriptPubKey.begin();
+        opcodetype op;
+        out.scriptPubKey.GetOp(it, op);
+        if (op == OP_RETURN)
+        {
+            std::vector<unsigned char> data;
+            out.scriptPubKey.GetOp(it, op, data);
+
+            // QByteArray imgData(out.scriptPubKey.begin()+1, out.scriptPubKey.end());
+            // std::vector<std::vector<unsigned char> > stack;
+            // if (EvalScript(stack, out.scriptPubKey, tx, cnt, 0))
+            // {
+            //     return QVariant();
+            // }
+            return QVariant(QByteArray(data[0], data.size()));
+        }
+
+        ++cnt;
+    }
+
+    return QVariant();
+}
+
+//*****************************************************************************
+//*****************************************************************************
 QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const
 {
     switch(wtx->type)
@@ -428,6 +506,8 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
 {
     // Show addresses without label in a less visible color
@@ -449,6 +529,8 @@ QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
     return QVariant();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QString TransactionTableModel::formatTxAmount(const TransactionRecord *wtx, bool showUnconfirmed) const
 {
     QString str = BitcoinUnits::format(walletModel->getOptionsModel()->getDisplayUnit(), wtx->credit + wtx->debit);
@@ -462,6 +544,8 @@ QString TransactionTableModel::formatTxAmount(const TransactionRecord *wtx, bool
     return QString(str);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx) const
 {
     if(wtx->type == TransactionRecord::Generated || wtx->type == TransactionRecord::StakeMint)
@@ -507,6 +591,8 @@ QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx)
     return QColor(0,0,0);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QString TransactionTableModel::formatTooltip(const TransactionRecord *rec) const
 {
     QString tooltip = formatTxStatus(rec) + QString("\n") + formatTxType(rec);
@@ -518,6 +604,8 @@ QString TransactionTableModel::formatTooltip(const TransactionRecord *rec) const
     return tooltip;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid())
@@ -605,10 +693,14 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
                                           rec->status.maturity != TransactionStatus::Mature);
     case FormattedAmountRole:
         return formatTxAmount(rec, false);
+    case DataRole:
+        return txData(rec);
     }
     return QVariant();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QVariant TransactionTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(orientation == Qt::Horizontal)
@@ -642,6 +734,8 @@ QVariant TransactionTableModel::headerData(int section, Qt::Orientation orientat
     return QVariant();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 QModelIndex TransactionTableModel::index(int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
@@ -656,6 +750,8 @@ QModelIndex TransactionTableModel::index(int row, int column, const QModelIndex 
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void TransactionTableModel::updateDisplayUnit()
 {
     // emit dataChanged to update Amount column with the current unit

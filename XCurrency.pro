@@ -247,7 +247,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/messagedialog/message_metatype.h \
     src/lz4/lz4.h \
     src/qt/messagedialog/userdelegate.h \
-    src/qt/messagedialog/usersmodel.h
+    src/qt/messagedialog/usersmodel.h \
+    src/qt/imagepreviewdialog.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -333,7 +334,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/messagedb.cpp \
     src/lz4/lz4.c \
     src/qt/messagedialog/userdelegate.cpp \
-    src/qt/messagedialog/usersmodel.cpp
+    src/qt/messagedialog/usersmodel.cpp \
+    src/qt/imagepreviewdialog.cpp
 
 RESOURCES += \
     src/qt/bitcoin.qrc

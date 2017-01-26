@@ -48,7 +48,9 @@ public:
         /** Is transaction confirmed? */
         ConfirmedRole,
         /** Formatted amount, without brackets when unconfirmed */
-        FormattedAmountRole
+        FormattedAmountRole,
+        // transaction data (encoded via op_return)
+        DataRole
     };
 
     int rowCount(const QModelIndex &parent) const;
@@ -56,6 +58,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const;
+
 private:
     CWallet* wallet;
     WalletModel *walletModel;
@@ -74,6 +77,10 @@ private:
     QVariant txStatusDecoration(const TransactionRecord *wtx) const;
     QVariant txAddressDecoration(const TransactionRecord *wtx) const;
     QVariant txDataDecoration(const TransactionRecord *wtx) const;
+    QVariant txData(const TransactionRecord *wtx) const;
+
+public:
+    QByteArray txData(const uint256 * txid) const;
 
 public slots:
     void updateTransaction(const QString &hash, int status);

@@ -1,3 +1,6 @@
+//*****************************************************************************
+//*****************************************************************************
+
 #include "transactiondescdialog.h"
 #include "ui_transactiondescdialog.h"
 
@@ -5,6 +8,8 @@
 
 #include <QModelIndex>
 
+//*****************************************************************************
+//*****************************************************************************
 TransactionDescDialog::TransactionDescDialog(const QModelIndex &idx, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::TransactionDescDialog)
@@ -14,6 +19,8 @@ TransactionDescDialog::TransactionDescDialog(const QModelIndex &idx, QWidget *pa
     ui->detailText->setHtml(desc);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 TransactionDescDialog::~TransactionDescDialog()
 {
     delete ui;

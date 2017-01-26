@@ -61,6 +61,7 @@ private slots:
     void contextualMenu(const QPoint &);
     void dateRangeChanged();
     void showDetails();
+    void showTxData();
     void copyAddress();
     void editLabel();
     void copyLabel();

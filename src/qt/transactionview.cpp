@@ -11,6 +11,7 @@
 #include "editaddressdialog.h"
 #include "optionsmodel.h"
 #include "guiutil.h"
+#include "imagepreviewdialog.h"
 
 #include <QScrollBar>
 #include <QComboBox>
@@ -28,6 +29,8 @@
 #include <QClipboard>
 #include <QLabel>
 #include <QDateTimeEdit>
+#include <QDebug>
+#include <QImageReader>
 
 TransactionView::TransactionView(QWidget *parent) :
     QWidget(parent), model(0), transactionProxyModel(0),
@@ -40,10 +43,10 @@ TransactionView::TransactionView(QWidget *parent) :
     hlayout->setContentsMargins(0,0,0,0);
 #ifdef Q_OS_MAC
     hlayout->setSpacing(5);
-    hlayout->addSpacing(26);
+    hlayout->addSpacing(26*2);
 #else
     hlayout->setSpacing(0);
-    hlayout->addSpacing(23);
+    hlayout->addSpacing(23*2);
 #endif
 
     dateWidget = new QComboBox(this);
@@ -125,10 +128,11 @@ TransactionView::TransactionView(QWidget *parent) :
 
     // Actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
-    QAction *copyLabelAction = new QAction(tr("Copy label"), this);
-    QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
-    QAction *editLabelAction = new QAction(tr("Edit label"), this);
+    QAction *copyLabelAction   = new QAction(tr("Copy label"), this);
+    QAction *copyAmountAction  = new QAction(tr("Copy amount"), this);
+    QAction *editLabelAction   = new QAction(tr("Edit label"), this);
     QAction *showDetailsAction = new QAction(tr("Show transaction details"), this);
+    QAction *showTxDataAction  = new QAction(tr("Show transaction data"), this);
 
     contextMenu = new QMenu();
     contextMenu->addAction(copyAddressAction);
@@ -136,21 +140,35 @@ TransactionView::TransactionView(QWidget *parent) :
     contextMenu->addAction(copyAmountAction);
     contextMenu->addAction(editLabelAction);
     contextMenu->addAction(showDetailsAction);
+    contextMenu->addAction(showTxDataAction);
 
     // Connect actions
-    connect(dateWidget, SIGNAL(activated(int)), this, SLOT(chooseDate(int)));
-    connect(typeWidget, SIGNAL(activated(int)), this, SLOT(chooseType(int)));
-    connect(addressWidget, SIGNAL(textChanged(QString)), this, SLOT(changedPrefix(QString)));
-    connect(amountWidget, SIGNAL(textChanged(QString)), this, SLOT(changedAmount(QString)));
+    connect(dateWidget,        SIGNAL(activated(int)),
+            this,              SLOT(chooseDate(int)));
+    connect(typeWidget,        SIGNAL(activated(int)),
+            this,              SLOT(chooseType(int)));
+    connect(addressWidget,     SIGNAL(textChanged(QString)),
+            this,              SLOT(changedPrefix(QString)));
+    connect(amountWidget,      SIGNAL(textChanged(QString)),
+            this,              SLOT(changedAmount(QString)));
 
-    connect(view, SIGNAL(doubleClicked(QModelIndex)), this, SIGNAL(doubleClicked(QModelIndex)));
-    connect(view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
+    connect(view,              SIGNAL(doubleClicked(QModelIndex)),
+            this,              SIGNAL(doubleClicked(QModelIndex)));
+    connect(view,              SIGNAL(customContextMenuRequested(QPoint)),
+            this,              SLOT(contextualMenu(QPoint)));
 
-    connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
-    connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
-    connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
-    connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editLabel()));
-    connect(showDetailsAction, SIGNAL(triggered()), this, SLOT(showDetails()));
+    connect(copyAddressAction, SIGNAL(triggered()),
+            this,              SLOT(copyAddress()));
+    connect(copyLabelAction,   SIGNAL(triggered()),
+            this,              SLOT(copyLabel()));
+    connect(copyAmountAction,  SIGNAL(triggered()),
+            this,              SLOT(copyAmount()));
+    connect(editLabelAction,   SIGNAL(triggered()),
+            this,              SLOT(editLabel()));
+    connect(showDetailsAction, SIGNAL(triggered()),
+            this,              SLOT(showDetails()));
+    connect(showTxDataAction,  SIGNAL(triggered()),
+            this,              SLOT(showTxData()));
 }
 
 void TransactionView::setModel(WalletModel *model)
@@ -302,10 +320,15 @@ void TransactionView::exportClicked()
 void TransactionView::contextualMenu(const QPoint &point)
 {
     QModelIndex index = transactionView->indexAt(point);
-    if(index.isValid())
+    if (!index.isValid())
     {
-        contextMenu->exec(QCursor::pos());
+        return;
     }
+
+    // TODO disable last action when no tx data
+    // contextMenu->actions().last()->setVisible(false);
+
+    contextMenu->exec(QCursor::pos());
 }
 
 void TransactionView::copyAddress()
@@ -379,6 +402,68 @@ void TransactionView::showDetails()
         TransactionDescDialog dlg(selection.at(0));
         dlg.exec();
     }
+}
+
+void TransactionView::showTxData()
+{
+    qDebug() << Q_FUNC_INFO;
+
+    if (!transactionView->selectionModel())
+    {
+        return;
+    }
+
+    QModelIndexList selection = transactionView->selectionModel()->selectedRows();
+    if (selection.isEmpty())
+    {
+        return;
+    }
+
+    QModelIndex idx = selection.at(0);
+    idx = transactionProxyModel->mapToSource(idx);
+
+
+    std::vector<unsigned char> data;
+    if (!GetTransactionOpReturnData())
+    {
+
+    }
+
+    TransactionTableModel * txm = model->getTransactionTableModel();
+    assert(txm && "bad TransactionTableModel pointer");
+
+    idx = txm->index(idx.row(), idx.column(), QModelIndex());
+
+    QByteArray ba = idx.data(TransactionTableModel::DataRole).toByteArray();
+    ->txData();
+
+    ba = model->getTransactionTableModel()->data(idx, TransactionTableModel::DataRole).toByteArray();
+    if (!ba.size())
+    {
+        return;
+    }
+
+    QImageReader r(ba);
+    qDebug() << r.supportedImageFormats();
+    r.setAutoDetectImageFormat(true);
+    QImage im = r.read();
+    if (im.isNull())
+    {
+        return;
+    }
+
+    QPixmap pix = QPixmap::fromImage(im);
+    if (pix.isNull())
+    {
+        return;
+    }
+
+    ImagePreviewDialog dlg(pix);
+    dlg.exec();
+
+//    TransactionTableModel * txmodel = model->getTransactionTableModel();
+//    QVariant data = txmodel->data(txmodel->index(idx.row(), idx.column(), QModelIndex()),
+//                                  TransactionTableModel::DataRole);
 }
 
 QWidget *TransactionView::createDateRangeWidget()
