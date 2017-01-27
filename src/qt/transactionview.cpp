@@ -421,47 +421,6 @@ void TransactionView::showTxData()
     }
 
     QModelIndex idx = selection.at(0);
-//    TransactionRecord * rec = static_cast<TransactinRecord*>(idx.internalPointer());
-//    if (!rec)
-//    {
-//        return;
-//    }
-
-//    CTransaction tx;
-//    uint256 block;
-//    if (!GetTransaction(rec->hash, tx, block))
-//    {
-//        return false;
-//    }
-
-
-//    if (outidx >= tx.vout.size)
-//    {
-//        return false;
-//    }
-
-//    std::vector<unsigned char> data;
-
-//    uint32_t cnt = 0;
-//    const std::vector<CTxOut> & vout = tx.vout;
-//    for (const CTxOut & out : vout)
-//    {
-//        auto it = out.scriptPubKey.begin();
-
-//        opcodetype op;
-//        out.scriptPubKey.GetOp(it, op);
-//        if (op == OP_RETURN)
-//        {
-//            out.scriptPubKey.GetOp(it, op, data);
-//            if (!data.empty())
-//            {
-//                break;
-//            }
-//        }
-//    }
-
-//    QByteArray ba(data[0]);
-//    ->txData();
 
     QByteArray ba = idx.data(TransactionTableModel::DataRole).toByteArray();
     if (!ba.size())
@@ -483,10 +442,6 @@ void TransactionView::showTxData()
 
     ImagePreviewDialog dlg(pix);
     dlg.exec();
-
-//    TransactionTableModel * txmodel = model->getTransactionTableModel();
-//    QVariant data = txmodel->data(txmodel->index(idx.row(), idx.column(), QModelIndex()),
-//                                  TransactionTableModel::DataRole);
 }
 
 QWidget *TransactionView::createDateRangeWidget()

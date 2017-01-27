@@ -864,7 +864,8 @@ void SendCoinsDialog::on_selectImageButton_clicked()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     trUtf8("Select image"),
                                                     trUtf8("Select image for send"),
-                                                    trUtf8("Image files (*.jpg *.jpeg);;All files (*.*)"));
+                                                    trUtf8("Image files (*.jpg *.jpeg)"));
+                                                    // trUtf8("Image files (*.jpg *.jpeg);;All files (*.*)"));
     if (fileName.isEmpty())
     {
         return;

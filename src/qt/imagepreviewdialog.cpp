@@ -2,6 +2,7 @@
 //*****************************************************************************
 
 #include "imagepreviewdialog.h"
+#include "util/verify.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -35,6 +36,8 @@ void ImagePreviewDialog::createUI()
     hbox->addStretch();
 
     QPushButton * close = new QPushButton(trUtf8("Close"), this);
+    VERIFY(connect(close, &QPushButton::clicked,
+                   this,  &ImagePreviewDialog::reject));
     hbox->addWidget(close);
 
     vbox->addLayout(hbox);
