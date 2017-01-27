@@ -26,6 +26,9 @@
 #include <QClipboard>
 #include <QFileDialog>
 #include <QFile>
+#include <QImageReader>
+#include <QImage>
+#include <QDebug>
 
 #include <boost/lexical_cast.hpp>
 

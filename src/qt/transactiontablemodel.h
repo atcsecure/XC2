@@ -79,9 +79,6 @@ private:
     QVariant txDataDecoration(const TransactionRecord *wtx) const;
     QVariant txData(const TransactionRecord *wtx) const;
 
-public:
-    QByteArray txData(const uint256 * txid) const;
-
 public slots:
     void updateTransaction(const QString &hash, int status);
     void updateConfirmations();

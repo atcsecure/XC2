@@ -471,13 +471,7 @@ QVariant TransactionTableModel::txData(const TransactionRecord * txr) const
             std::vector<unsigned char> data;
             out.scriptPubKey.GetOp(it, op, data);
 
-            // QByteArray imgData(out.scriptPubKey.begin()+1, out.scriptPubKey.end());
-            // std::vector<std::vector<unsigned char> > stack;
-            // if (EvalScript(stack, out.scriptPubKey, tx, cnt, 0))
-            // {
-            //     return QVariant();
-            // }
-            return QVariant(QByteArray(data[0], data.size()));
+            return QVariant(QByteArray(reinterpret_cast<const char *>(&data[0]), data.size()));
         }
 
         ++cnt;

@@ -12,6 +12,7 @@
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "imagepreviewdialog.h"
+#include "wallet.h"
 
 #include <QScrollBar>
 #include <QComboBox>
@@ -420,33 +421,55 @@ void TransactionView::showTxData()
     }
 
     QModelIndex idx = selection.at(0);
-    idx = transactionProxyModel->mapToSource(idx);
+//    TransactionRecord * rec = static_cast<TransactinRecord*>(idx.internalPointer());
+//    if (!rec)
+//    {
+//        return;
+//    }
+
+//    CTransaction tx;
+//    uint256 block;
+//    if (!GetTransaction(rec->hash, tx, block))
+//    {
+//        return false;
+//    }
 
 
-    std::vector<unsigned char> data;
-    if (!GetTransactionOpReturnData())
-    {
+//    if (outidx >= tx.vout.size)
+//    {
+//        return false;
+//    }
 
-    }
+//    std::vector<unsigned char> data;
 
-    TransactionTableModel * txm = model->getTransactionTableModel();
-    assert(txm && "bad TransactionTableModel pointer");
+//    uint32_t cnt = 0;
+//    const std::vector<CTxOut> & vout = tx.vout;
+//    for (const CTxOut & out : vout)
+//    {
+//        auto it = out.scriptPubKey.begin();
 
-    idx = txm->index(idx.row(), idx.column(), QModelIndex());
+//        opcodetype op;
+//        out.scriptPubKey.GetOp(it, op);
+//        if (op == OP_RETURN)
+//        {
+//            out.scriptPubKey.GetOp(it, op, data);
+//            if (!data.empty())
+//            {
+//                break;
+//            }
+//        }
+//    }
+
+//    QByteArray ba(data[0]);
+//    ->txData();
 
     QByteArray ba = idx.data(TransactionTableModel::DataRole).toByteArray();
-    ->txData();
-
-    ba = model->getTransactionTableModel()->data(idx, TransactionTableModel::DataRole).toByteArray();
     if (!ba.size())
     {
         return;
     }
 
-    QImageReader r(ba);
-    qDebug() << r.supportedImageFormats();
-    r.setAutoDetectImageFormat(true);
-    QImage im = r.read();
+    QImage im = QImage::fromData(ba, "jpg");
     if (im.isNull())
     {
         return;
