@@ -941,7 +941,8 @@ void SendCoinsDialog::processPaymentsWithImage()
         SendCoinsRecipient rcp = m_sendEntries.front()->getValue();
         outputs.push_back(Pair(rcp.address.toStdString(), (double)rcp.amount/COIN));
 
-        int64 nPayFee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (1 + (uint64_t)inf.size() / 1000);
+        // int64 nPayFee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (1 + (uint64_t)inf.size() / 1000);
+        int64 nPayFee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (2 + (uint64_t)inf.size() / 1000);
 
         std::vector<COutput> vCoins;
         pwalletMain->AvailableCoins(vCoins, true, nullptr);
@@ -965,6 +966,15 @@ void SendCoinsDialog::processPaymentsWithImage()
         if (amount < rcp.amount + nPayFee)
         {
             throw std::runtime_error("No money");
+        }
+        else if (amount > rcp.amount + nPayFee)
+        {
+            // rest
+            CReserveKey rkey(pwalletMain);
+            CPubKey pk = rkey.GetReservedKey();
+            CBitcoinAddress addr(pk.GetID());
+            uint64_t rest = amount - rcp.amount - nPayFee;
+            outputs.push_back(Pair(addr.ToString(), (double)rest/COIN));
         }
 
         Array inputs;
