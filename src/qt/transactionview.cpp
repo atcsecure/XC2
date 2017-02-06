@@ -425,18 +425,21 @@ void TransactionView::showTxData()
     QByteArray ba = idx.data(TransactionTableModel::DataRole).toByteArray();
     if (!ba.size())
     {
+        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("No op_return data in transaction"));
         return;
     }
 
     QImage im = QImage::fromData(ba, "jpg");
     if (im.isNull())
     {
+        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("JPG decode error"));
         return;
     }
 
     QPixmap pix = QPixmap::fromImage(im);
     if (pix.isNull())
     {
+        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Image not converted"));
         return;
     }
 
