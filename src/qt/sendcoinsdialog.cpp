@@ -29,6 +29,8 @@
 #include <QImageReader>
 #include <QImage>
 #include <QDebug>
+#include <QMimeDatabase>
+#include <QMimeType>
 
 #include <boost/lexical_cast.hpp>
 
@@ -862,12 +864,24 @@ void SendCoinsDialog::on_txWithImage_clicked()
 void SendCoinsDialog::on_selectImageButton_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    trUtf8("Select image"),
-                                                    trUtf8("Select image for send"),
-                                                    trUtf8("Image files (*.jpg *.jpeg)"));
+                                                    trUtf8("Select file"),
+                                                    trUtf8("Select file for send"),
+                                                    trUtf8("Document files (*.pdf)"));
                                                     // trUtf8("Image files (*.jpg *.jpeg);;All files (*.*)"));
     if (fileName.isEmpty())
+        return;
+
+    QMimeDatabase mimeDb;
+    QMimeType mimeType = mimeDb.mimeTypeForFile(fileName, QMimeDatabase::MatchContent);
+
+    qDebug() << "MimeType:" << mimeType.name() << "parents:" << mimeType.parentMimeTypes() << "aliases" << mimeType.aliases();
+
+    if(!mimeType.inherits(QLatin1String("application/pdf")))
     {
+        QMessageBox::warning(this, tr("File type"),
+            tr("File doesn't match PDF type."),
+            QMessageBox::Ok);
+
         return;
     }
 
