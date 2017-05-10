@@ -36,6 +36,8 @@
 #include <QMimeType>
 #include <QDesktopServices>
 #include <QUuid>
+#include <QFile>
+#include <QUrl>
 
 TransactionView::TransactionView(QWidget *parent) :
     QWidget(parent), model(0), transactionProxyModel(0),
