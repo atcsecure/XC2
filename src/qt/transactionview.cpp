@@ -32,6 +32,10 @@
 #include <QDateTimeEdit>
 #include <QDebug>
 #include <QImageReader>
+#include <QMimeDatabase>
+#include <QMimeType>
+#include <QDesktopServices>
+#include <QUuid>
 
 TransactionView::TransactionView(QWidget *parent) :
     QWidget(parent), model(0), transactionProxyModel(0),
@@ -429,22 +433,45 @@ void TransactionView::showTxData()
         return;
     }
 
-    QImage im = QImage::fromData(ba, "jpg");
-    if (im.isNull())
+    QMimeDatabase mimeDb;
+    QMimeType mimeType = mimeDb.mimeTypeForData(ba);
+
+    if(!mimeType.inherits(QLatin1String("application/pdf")))
     {
-        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("JPG decode error"));
+        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Data is not PDF type."));
         return;
     }
 
-    QPixmap pix = QPixmap::fromImage(im);
-    if (pix.isNull())
+    QString location = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    QString fileName = QStringLiteral("%1.pdf").arg(QUuid::createUuid().toString());
+    QFile saveFile(QStringLiteral("%1/%2").arg(location).arg(fileName));
+
+    saveFile.open(QFile::WriteOnly);
+    saveFile.write(ba);
+    saveFile.close();
+
+    if(!QDesktopServices::openUrl(QUrl::fromLocalFile(saveFile.fileName())))
     {
-        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Image not converted"));
+        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Can't find program to open PDF documents"));
         return;
     }
 
-    ImagePreviewDialog dlg(pix);
-    dlg.exec();
+//    QImage im = QImage::fromData(ba, "jpg");
+//    if (im.isNull())
+//    {
+//        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("JPG decode error"));
+//        return;
+//    }
+
+//    QPixmap pix = QPixmap::fromImage(im);
+//    if (pix.isNull())
+//    {
+//        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Image not converted"));
+//        return;
+//    }
+
+//    ImagePreviewDialog dlg(pix);
+//    dlg.exec();
 }
 
 QWidget *TransactionView::createDateRangeWidget()

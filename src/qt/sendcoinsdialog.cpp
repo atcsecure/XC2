@@ -934,7 +934,7 @@ void SendCoinsDialog::processPaymentsWithImage()
             if (inf.size() > 1024*1024)
             {
                 // size must be less than 1M
-                throw std::runtime_error("Image file size too big");
+                throw std::runtime_error("File size too big");
             }
 
             {
