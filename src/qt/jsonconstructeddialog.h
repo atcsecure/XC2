@@ -15,7 +15,10 @@ public:
 
 private:
     void createUI();
-    void constructFromJson(const QJsonObject& json, QBoxLayout *layout);
+    void constructFromJson(const QJsonArray &jsonArray, QBoxLayout *layout);
+
+    QString getString(const QString& key, const QJsonObject& json) const;
+    bool getBool(const QString& key, const QJsonObject& json) const;
 
 private:
     QJsonDocument m_json;
