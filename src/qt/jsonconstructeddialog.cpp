@@ -32,6 +32,7 @@ JsonConstructedDialog::JsonConstructedDialog(const QByteArray &ba, QWidget *pare
 
 void JsonConstructedDialog::createUI()
 {
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     setMinimumSize(300, 300);
 
     QVBoxLayout* vbox = new QVBoxLayout;
@@ -80,7 +81,6 @@ void JsonConstructedDialog::constructFromJson(const QJsonArray &jsonArray, QBoxL
                 continue;
 
             QVBoxLayout* vbox = new QVBoxLayout;
-            vbox->addStretch();
             layout->addLayout(vbox);
 
             constructFromJson(elementsValue.toArray(), vbox);
@@ -92,7 +92,6 @@ void JsonConstructedDialog::constructFromJson(const QJsonArray &jsonArray, QBoxL
                 continue;
 
             QHBoxLayout* hbox = new QHBoxLayout;
-            hbox->addStretch();
             layout->addLayout(hbox);
 
             constructFromJson(elementsValue.toArray(), hbox);
