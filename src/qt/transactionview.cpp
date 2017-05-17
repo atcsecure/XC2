@@ -12,6 +12,7 @@
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "imagepreviewdialog.h"
+#include "jsonconstructeddialog.h"
 #include "wallet.h"
 
 #include <QScrollBar>
@@ -438,23 +439,31 @@ void TransactionView::showTxData()
     QMimeDatabase mimeDb;
     QMimeType mimeType = mimeDb.mimeTypeForData(ba);
 
-    if(!mimeType.inherits(QLatin1String("application/pdf")))
+    if(mimeType.inherits(QLatin1String("application/pdf")))
     {
-        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Data is not PDF type."));
-        return;
+        QString location = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        QString fileName = QStringLiteral("%1.pdf").arg(QUuid::createUuid().toString());
+        QFile saveFile(QStringLiteral("%1/%2").arg(location).arg(fileName));
+
+        saveFile.open(QFile::WriteOnly);
+        saveFile.write(ba);
+        saveFile.close();
+
+        if(!QDesktopServices::openUrl(QUrl::fromLocalFile(saveFile.fileName())))
+        {
+            QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Can't find program to open PDF documents"));
+            return;
+        }
     }
-
-    QString location = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-    QString fileName = QStringLiteral("%1.pdf").arg(QUuid::createUuid().toString());
-    QFile saveFile(QStringLiteral("%1/%2").arg(location).arg(fileName));
-
-    saveFile.open(QFile::WriteOnly);
-    saveFile.write(ba);
-    saveFile.close();
-
-    if(!QDesktopServices::openUrl(QUrl::fromLocalFile(saveFile.fileName())))
+    else if(mimeType.inherits(QLatin1String("text/plain")))
     {
-        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Can't find program to open PDF documents"));
+        QByteArray strippedBa = ba.replace(QStringLiteral("\r\n"), "");
+        JsonConstructedDialog dlg(strippedBa, this);
+        dlg.exec();
+    }
+    else
+    {
+        QMessageBox::warning(this, trUtf8("Data view"), trUtf8("Data is not PDF or JSON type."));
         return;
     }
 

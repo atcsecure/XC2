@@ -688,7 +688,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="imagePath"/>
+      <widget class="QLineEdit" name="imagePath">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="selectImageButton">

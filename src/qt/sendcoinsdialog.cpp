@@ -866,7 +866,7 @@ void SendCoinsDialog::on_selectImageButton_clicked()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     trUtf8("Select file"),
                                                     trUtf8("Select file for send"),
-                                                    trUtf8("Document files (*.pdf)"));
+                                                    trUtf8("Document files (*.pdf *.json)"));
                                                     // trUtf8("Image files (*.jpg *.jpeg);;All files (*.*)"));
     if (fileName.isEmpty())
         return;
@@ -876,10 +876,10 @@ void SendCoinsDialog::on_selectImageButton_clicked()
 
     qDebug() << "MimeType:" << mimeType.name() << "parents:" << mimeType.parentMimeTypes() << "aliases" << mimeType.aliases();
 
-    if(!mimeType.inherits(QLatin1String("application/pdf")))
+    if(!mimeType.inherits(QLatin1String("application/pdf")) && !mimeType.inherits(QLatin1String("text/plain")))
     {
         QMessageBox::warning(this, tr("File type"),
-            tr("File doesn't match PDF type."),
+            tr("File doesn't match PDF or JSON type."),
             QMessageBox::Ok);
 
         return;
