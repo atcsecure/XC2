@@ -457,8 +457,7 @@ void TransactionView::showTxData()
     }
     else if(mimeType.inherits(QLatin1String("text/plain")))
     {
-        QByteArray strippedBa = ba.replace(QStringLiteral("\r\n"), "");
-        JsonConstructedDialog dlg(strippedBa, this);
+        JsonConstructedDialog dlg(ba, false, this);
         dlg.exec();
     }
     else

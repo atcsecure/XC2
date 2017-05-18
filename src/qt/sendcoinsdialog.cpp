@@ -16,8 +16,10 @@
 #include "coincontrol.h"
 #include "coincontroldialog.h"
 #include "bitcoinrpc.h"
+#include "jsonconstructeddialog.h"
 
 #include "json/json_spirit.h"
+#include "util/verify.h"
 
 #include <QMessageBox>
 #include <QLocale>
@@ -885,7 +887,32 @@ void SendCoinsDialog::on_selectImageButton_clicked()
         return;
     }
 
-    ui->imagePath->setText(fileName);
+    if(mimeType.inherits(QLatin1String("text/plain")))
+    {
+        QFile file(fileName);
+        file.open(QFile::ReadOnly);
+        QByteArray ba = file.readAll();
+        file.close();
+        JsonConstructedDialog dlg(ba, true, this);
+
+        VERIFY(connect(&dlg, &JsonConstructedDialog::formEdited, [=](QJsonDocument json){
+            QString location = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+            QString tmpFileName = QStringLiteral("%1.json").arg(QUuid::createUuid().toString());
+            QFile saveFile(QStringLiteral("%1/%2").arg(location).arg(tmpFileName));
+
+            saveFile.open(QFile::WriteOnly);
+            saveFile.write(json.toJson(QJsonDocument::Compact));
+            saveFile.close();
+
+            ui->imagePath->setText(saveFile.fileName());
+        }));
+
+        dlg.exec();
+    }
+    else
+    {
+        ui->imagePath->setText(fileName);
+    }
 }
 
 //*****************************************************************************
