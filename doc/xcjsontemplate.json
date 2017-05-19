@@ -1,0 +1,76 @@
+{
+  "windowSize": {
+    "x": 400,
+    "y": 500
+  },
+  "elements": [
+    {
+      "type": "Title",
+      "text": "test json dialog construct"
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "Label",
+          "text": "first label",
+          "bold": true
+        },
+        {
+          "type": "LineEdit",
+          "text": "hello"
+        }
+      ]
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "CheckBox",
+          "text": "first cbox",
+          "checked": true
+        },
+        {
+          "type": "CheckBox",
+          "text": "unchecked cbox",
+          "checked": false
+        },
+        {
+          "type": "CheckBox",
+          "text": "last cbox",
+          "checked": true
+        }
+      ]
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "Label",
+          "text": "second label"
+        },
+        {
+          "type": "LineEdit",
+          "text": "world"
+        }
+      ]
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "Label",
+          "text": "therd label"
+        },
+        {
+          "type": "LineEdit",
+          "text": "!!!"
+        }
+      ]
+    },
+    {
+      "type": "TextEdit",
+      "text": "some big text some big text some big text some big text some big text"
+    }
+  ]
+}
