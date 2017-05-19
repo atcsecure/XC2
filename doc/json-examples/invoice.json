@@ -1,0 +1,76 @@
+{
+  "windowSize": {
+    "x": 400,
+    "y": 500
+  },
+  "elements": [
+    {
+      "type": "Title",
+      "text": "test json dialog construct"
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "Label",
+          "text": "Customer Name",
+          "bold": true
+        },
+        {
+          "type": "LineEdit",
+          "text": "John Doe"
+        }
+      ]
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "CheckBox",
+          "text": "Net 5",
+          "checked": true
+        },
+        {
+          "type": "CheckBox",
+          "text": "Net 10",
+          "checked": false
+        },
+        {
+          "type": "CheckBox",
+          "text": "Net 30",
+          "checked": false
+        }
+      ]
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "Label",
+          "text": "Due Date"
+        },
+        {
+          "type": "LineEdit",
+          "text": "12/12/21"
+        }
+      ]
+    },
+    {
+      "type": "HBoxLayout",
+      "elements": [
+        {
+          "type": "Label",
+          "text": "Project Description"
+        },
+        {
+          "type": "LineEdit",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "type": "TextEdit",
+      "text": "Invoice for Snow removal"
+    }
+  ]
+}
