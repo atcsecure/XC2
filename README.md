@@ -16,10 +16,12 @@
 - Anonymous TX's - P2P only (no nodes in use) - 3+ users required (deprecated) 
 - Zero Proof or Ring Sig. based anon is being reviewed as a replacement
 
-## 2017 Roadmap
+## 2017-2018 Roadmap (Resource Dependent)
 - Encrypted Forms/PDF's
 - Document Signing/Verification
 - Next-Gen Anon
+- Rebase wallet code to latest BTC code for CLTV/BIP65 Support, Network
+  Improvements and other updates/improvements from btc code
 - Revive Mobile Wallet development for full mobile experience
 
 ## This software is experimental and should be treated as such
