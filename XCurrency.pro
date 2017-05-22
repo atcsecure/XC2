@@ -151,26 +151,15 @@ QMAKE_CFLAGS += -msse2
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
 
 # Input
-DEPENDPATH += src src/json src/qt
-HEADERS += src/qt/bitcoingui.h \
-    src/qt/transactiontablemodel.h \
-    src/qt/addresstablemodel.h \
-    src/qt/optionsdialog.h \
-	src/qt/coincontroldialog.h \
-    src/qt/coincontroltreewidget.h \
-    src/qt/sendcoinsdialog.h \
-    src/qt/addressbookpage.h \
-    src/qt/signverifymessagedialog.h \
-    src/qt/aboutdialog.h \
-    src/qt/editaddressdialog.h \
-    src/qt/bitcoinaddressvalidator.h \
+DEPENDPATH += src src/json
+HEADERS += \
     src/alert.h \
     src/addrman.h \
     src/base58.h \
     src/bignum.h \
     src/checkpoints.h \
     src/compat.h \
-	src/coincontrol.h \
+    src/coincontrol.h \
     src/sync.h \
     src/util.h \
     src/uint256.h \
@@ -197,35 +186,13 @@ HEADERS += src/qt/bitcoingui.h \
     src/json/json_spirit_reader.h \
     src/json/json_spirit_error_position.h \
     src/json/json_spirit.h \
-    src/qt/clientmodel.h \
-    src/qt/guiutil.h \
-    src/qt/transactionrecord.h \
-    src/qt/guiconstants.h \
-    src/qt/optionsmodel.h \
-    src/qt/monitoreddatamapper.h \
-    src/qt/transactiondesc.h \
-    src/qt/transactiondescdialog.h \
-    src/qt/bitcoinamountfield.h \
     src/wallet.h \
     src/keystore.h \
-    src/qt/transactionfilterproxy.h \
-    src/qt/transactionview.h \
-    src/qt/walletmodel.h \
     src/bitcoinrpc.h \
-    src/qt/overviewpage.h \
-    src/qt/csvmodelwriter.h \
     src/crypter.h \
-    src/qt/sendcoinsentry.h \
-    src/qt/qvalidatedlineedit.h \
-    src/qt/bitcoinunits.h \
-    src/qt/qvaluecombobox.h \
-    src/qt/askpassphrasedialog.h \
     src/protocol.h \
-    src/qt/notificator.h \
-    src/qt/qtipcserver.h \
     src/allocators.h \
     src/ui_interface.h \
-    src/qt/rpcconsole.h \
     src/version.h \
     src/netbase.h \
     src/clientversion.h \
@@ -246,31 +213,12 @@ HEADERS += src/qt/bitcoingui.h \
     src/mixer.h \
     src/servermixer.h \
     src/multisigmixer.h \
-    src/qt/messagedialog/messagedialog.h \
     src/util/verify.h \
-    src/qt/messagedialog/messagesmodel.h \
-    src/qt/messagedialog/messagedelegate.h \
     src/message.h \
     src/messagedb.h \
-    src/qt/messagedialog/message_metatype.h \
-    src/lz4/lz4.h \
-    src/qt/messagedialog/userdelegate.h \
-    src/qt/messagedialog/usersmodel.h \
-    src/qt/imagepreviewdialog.h \
-    src/qt/jsonconstructeddialog.h
+    src/lz4/lz4.h
 
-SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
-    src/qt/transactiontablemodel.cpp \
-    src/qt/addresstablemodel.cpp \
-    src/qt/optionsdialog.cpp \
-    src/qt/sendcoinsdialog.cpp \
-	src/qt/coincontroldialog.cpp \
-    src/qt/coincontroltreewidget.cpp \
-    src/qt/addressbookpage.cpp \
-    src/qt/signverifymessagedialog.cpp \
-    src/qt/aboutdialog.cpp \
-    src/qt/editaddressdialog.cpp \
-    src/qt/bitcoinaddressvalidator.cpp \
+SOURCES += \
     src/alert.cpp \
     src/version.cpp \
     src/sync.cpp \
@@ -286,20 +234,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/addrman.cpp \
     src/db.cpp \
     src/walletdb.cpp \
-    src/qt/clientmodel.cpp \
-    src/qt/guiutil.cpp \
-    src/qt/transactionrecord.cpp \
-    src/qt/optionsmodel.cpp \
-    src/qt/monitoreddatamapper.cpp \
-    src/qt/transactiondesc.cpp \
-    src/qt/transactiondescdialog.cpp \
-    src/qt/bitcoinstrings.cpp \
-    src/qt/bitcoinamountfield.cpp \
     src/wallet.cpp \
     src/keystore.cpp \
-    src/qt/transactionfilterproxy.cpp \
-    src/qt/transactionview.cpp \
-    src/qt/walletmodel.cpp \
     src/bitcoinrpc.cpp \
     src/rpcdump.cpp \
     src/rpcnet.cpp \
@@ -307,18 +243,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/rpcwallet.cpp \
     src/rpcblockchain.cpp \
     src/rpcrawtransaction.cpp \
-    src/qt/overviewpage.cpp \
-    src/qt/csvmodelwriter.cpp \
     src/crypter.cpp \
-    src/qt/sendcoinsentry.cpp \
-    src/qt/qvalidatedlineedit.cpp \
-    src/qt/bitcoinunits.cpp \
-    src/qt/qvaluecombobox.cpp \
-    src/qt/askpassphrasedialog.cpp \
     src/protocol.cpp \
-    src/qt/notificator.cpp \
-    src/qt/qtipcserver.cpp \
-    src/qt/rpcconsole.cpp \
     src/noui.cpp \
     src/kernel.cpp \
     src/pbkdf2.cpp \
@@ -336,69 +262,159 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/mixer.cpp \
     src/servermixer.cpp \
     src/multisigmixer.cpp \
-    src/qt/messagedialog/messagedialog.cpp \
-    src/qt/messagedialog/messagesmodel.cpp \
-    src/qt/messagedialog/messagedelegate.cpp \
     src/message.cpp \
     src/messagedb.cpp \
-    src/lz4/lz4.c \
-    src/qt/messagedialog/userdelegate.cpp \
-    src/qt/messagedialog/usersmodel.cpp \
-    src/qt/imagepreviewdialog.cpp \
-    src/qt/jsonconstructeddialog.cpp
+    src/lz4/lz4.c
 
-RESOURCES += \
-    src/qt/bitcoin.qrc
+!withoutgui {
 
-FORMS += \
-	src/qt/forms/coincontroldialog.ui \
-    src/qt/forms/sendcoinsdialog.ui \
-    src/qt/forms/addressbookpage.ui \
-    src/qt/forms/signverifymessagedialog.ui \
-    src/qt/forms/aboutdialog.ui \
-    src/qt/forms/editaddressdialog.ui \
-    src/qt/forms/transactiondescdialog.ui \
-    src/qt/forms/overviewpage.ui \
-    src/qt/forms/sendcoinsentry.ui \
-    src/qt/forms/askpassphrasedialog.ui \
-    src/qt/forms/rpcconsole.ui \
-    src/qt/forms/optionsdialog.ui \
-    src/qt/messagedialog/messagedialog.ui
+    DEPENDPATH += src/qt
 
-contains(USE_QRCODE, 1) {
-HEADERS += src/qt/qrcodedialog.h
-SOURCES += src/qt/qrcodedialog.cpp
-FORMS += src/qt/forms/qrcodedialog.ui
+    HEADERS += \
+        src/qt/bitcoingui.h \
+        src/qt/transactiontablemodel.h \
+        src/qt/addresstablemodel.h \
+        src/qt/optionsdialog.h \
+        src/qt/coincontroldialog.h \
+        src/qt/coincontroltreewidget.h \
+        src/qt/sendcoinsdialog.h \
+        src/qt/addressbookpage.h \
+        src/qt/signverifymessagedialog.h \
+        src/qt/aboutdialog.h \
+        src/qt/editaddressdialog.h \
+        src/qt/bitcoinaddressvalidator.h \
+        src/qt/clientmodel.h \
+        src/qt/guiutil.h \
+        src/qt/transactionrecord.h \
+        src/qt/guiconstants.h \
+        src/qt/optionsmodel.h \
+        src/qt/monitoreddatamapper.h \
+        src/qt/transactiondesc.h \
+        src/qt/transactiondescdialog.h \
+        src/qt/bitcoinamountfield.h \
+        src/qt/transactionfilterproxy.h \
+        src/qt/transactionview.h \
+        src/qt/walletmodel.h \
+        src/qt/overviewpage.h \
+        src/qt/csvmodelwriter.h \
+        src/qt/sendcoinsentry.h \
+        src/qt/qvalidatedlineedit.h \
+        src/qt/bitcoinunits.h \
+        src/qt/qvaluecombobox.h \
+        src/qt/askpassphrasedialog.h \
+        src/qt/notificator.h \
+        src/qt/qtipcserver.h \
+        src/qt/rpcconsole.h \
+        src/qt/messagedialog/messagedialog.h \
+        src/qt/messagedialog/messagesmodel.h \
+        src/qt/messagedialog/messagedelegate.h \
+        src/qt/messagedialog/message_metatype.h \
+        src/qt/messagedialog/userdelegate.h \
+        src/qt/messagedialog/usersmodel.h \
+        src/qt/imagepreviewdialog.h \
+        src/qt/jsonconstructeddialog.h
+
+    SOURCES += \
+        src/qt/bitcoin.cpp \
+        src/qt/bitcoingui.cpp \
+        src/qt/transactiontablemodel.cpp \
+        src/qt/addresstablemodel.cpp \
+        src/qt/optionsdialog.cpp \
+        src/qt/sendcoinsdialog.cpp \
+        src/qt/coincontroldialog.cpp \
+        src/qt/coincontroltreewidget.cpp \
+        src/qt/addressbookpage.cpp \
+        src/qt/signverifymessagedialog.cpp \
+        src/qt/aboutdialog.cpp \
+        src/qt/editaddressdialog.cpp \
+        src/qt/bitcoinaddressvalidator.cpp \
+        src/qt/clientmodel.cpp \
+        src/qt/guiutil.cpp \
+        src/qt/transactionrecord.cpp \
+        src/qt/optionsmodel.cpp \
+        src/qt/monitoreddatamapper.cpp \
+        src/qt/transactiondesc.cpp \
+        src/qt/transactiondescdialog.cpp \
+        src/qt/bitcoinstrings.cpp \
+        src/qt/bitcoinamountfield.cpp \
+        src/qt/transactionfilterproxy.cpp \
+        src/qt/transactionview.cpp \
+        src/qt/walletmodel.cpp \
+        src/qt/overviewpage.cpp \
+        src/qt/csvmodelwriter.cpp \
+        src/qt/sendcoinsentry.cpp \
+        src/qt/qvalidatedlineedit.cpp \
+        src/qt/bitcoinunits.cpp \
+        src/qt/qvaluecombobox.cpp \
+        src/qt/askpassphrasedialog.cpp \
+        src/qt/notificator.cpp \
+        src/qt/qtipcserver.cpp \
+        src/qt/rpcconsole.cpp \
+        src/qt/messagedialog/messagedialog.cpp \
+        src/qt/messagedialog/messagesmodel.cpp \
+        src/qt/messagedialog/messagedelegate.cpp \
+        src/qt/messagedialog/userdelegate.cpp \
+        src/qt/messagedialog/usersmodel.cpp \
+        src/qt/imagepreviewdialog.cpp \
+        src/qt/jsonconstructeddialog.cpp
+
+    RESOURCES += \
+        src/qt/bitcoin.qrc
+
+    FORMS += \
+        src/qt/forms/coincontroldialog.ui \
+        src/qt/forms/sendcoinsdialog.ui \
+        src/qt/forms/addressbookpage.ui \
+        src/qt/forms/signverifymessagedialog.ui \
+        src/qt/forms/aboutdialog.ui \
+        src/qt/forms/editaddressdialog.ui \
+        src/qt/forms/transactiondescdialog.ui \
+        src/qt/forms/overviewpage.ui \
+        src/qt/forms/sendcoinsentry.ui \
+        src/qt/forms/askpassphrasedialog.ui \
+        src/qt/forms/rpcconsole.ui \
+        src/qt/forms/optionsdialog.ui \
+        src/qt/messagedialog/messagedialog.ui
+
+    contains(USE_QRCODE, 1) {
+        HEADERS += src/qt/qrcodedialog.h
+        SOURCES += src/qt/qrcodedialog.cpp
+        FORMS += src/qt/forms/qrcodedialog.ui
+    }
+
+    contains(BITCOIN_QT_TEST, 1) {
+        SOURCES += src/qt/test/test_main.cpp \
+            src/qt/test/uritests.cpp
+        HEADERS += src/qt/test/uritests.h
+        DEPENDPATH += src/qt/test
+        QT += testlib
+        TARGET = XCurrency-qt_test
+        DEFINES += BITCOIN_QT_TEST
+    }
+
+    CODECFORTR = UTF-8
+
+    # for lrelease/lupdate
+    # also add new translations to src/qt/bitcoin.qrc under translations/
+    TRANSLATIONS = $$files(src/qt/locale/bitcoin_*.ts)
+
+    isEmpty(QM_DIR):QM_DIR = $$PWD/src/qt/locale
+    # automatically build translations, so they can be included in resource file
+    TSQM.name = lrelease ${QMAKE_FILE_IN}
+    TSQM.input = TRANSLATIONS
+    TSQM.output = $$QM_DIR/${QMAKE_FILE_BASE}.qm
+    TSQM.commands = $$QMAKE_LRELEASE ${QMAKE_FILE_IN} -qm ${QMAKE_FILE_OUT}
+    TSQM.CONFIG = no_link
+    QMAKE_EXTRA_COMPILERS += TSQM
+
+    # "Other files" to show in Qt Creator
+    OTHER_FILES += \
+        doc/*.rst doc/*.txt doc/README README.md res/bitcoin-qt.rc src/test/*.cpp src/test/*.h src/qt/test/*.cpp src/qt/test/*.h
+
+    macx:QT += macextras
+    macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
+    macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 }
-
-contains(BITCOIN_QT_TEST, 1) {
-SOURCES += src/qt/test/test_main.cpp \
-    src/qt/test/uritests.cpp
-HEADERS += src/qt/test/uritests.h
-DEPENDPATH += src/qt/test
-QT += testlib
-TARGET = XCurrency-qt_test
-DEFINES += BITCOIN_QT_TEST
-}
-
-CODECFORTR = UTF-8
-
-# for lrelease/lupdate
-# also add new translations to src/qt/bitcoin.qrc under translations/
-TRANSLATIONS = $$files(src/qt/locale/bitcoin_*.ts)
-
-isEmpty(QMAKE_LRELEASE) {
-    win32:QMAKE_LRELEASE = $$[QT_INSTALL_BINS]\\lrelease.exe
-    else:QMAKE_LRELEASE = $$[QT_INSTALL_BINS]/lrelease
-}
-isEmpty(QM_DIR):QM_DIR = $$PWD/src/qt/locale
-# automatically build translations, so they can be included in resource file
-TSQM.name = lrelease ${QMAKE_FILE_IN}
-TSQM.input = TRANSLATIONS
-TSQM.output = $$QM_DIR/${QMAKE_FILE_BASE}.qm
-TSQM.commands = $$QMAKE_LRELEASE ${QMAKE_FILE_IN} -qm ${QMAKE_FILE_OUT}
-TSQM.CONFIG = no_link
-QMAKE_EXTRA_COMPILERS += TSQM
 
 # "Other files" to show in Qt Creator
 OTHER_FILES += \
@@ -453,9 +469,6 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     LIBS += -lrt
 }
 
-macx:QT += macextras
-macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
-macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/bitcoin.icns
 macx:TARGET = "XCurrency-qt"
