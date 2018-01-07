@@ -2009,3 +2009,124 @@ Value distmix(const Array& params, bool fHelp)
 
     return (int64_t)msgtx->myoutputs.size();
 }
+
+Value listutxo(const Array & /*params*/, bool fHelp)
+{
+    if (fHelp)
+        throw runtime_error("Get list of unspent transaction outputs\n");
+
+    if (pwalletMain->IsLocked())
+        throw runtime_error("Wallet locked");
+
+    typedef std::vector<CTxOut> TxOutVector;
+    typedef std::map<uint256, TxOutVector> TxMap;
+    TxMap txmap;
+
+    uint32_t counter = 0;
+    CBlockIndex *pindex = pindexGenesisBlock;
+    {
+        LOCK(pwalletMain->cs_wallet);
+        for (counter = 0; pindex; ++counter) 
+        {
+            CBlock block; 
+            block.ReadFromDisk(pindex, true); 
+            for (std::vector<CTransaction>::size_type i = 0; i != block.vtx.size(); i++)
+                // const CTransaction &tx : block.vtx)
+            {
+                const CTransaction &tx = block.vtx[i];
+                uint256 hash = tx.GetHash();
+
+                // inputs, remove spent
+                for (std::vector<CTxIn>::size_type j = 0; j != tx.vin.size(); j++)
+                    // const CTxIn &in : tx.vin)
+                {
+                    const CTxIn &in = tx.vin[j];
+                    const uint256 &inhash = in.prevout.hash;
+                    if (txmap.count(inhash))
+                    {
+                        if (txmap[inhash].size() <= in.prevout.n)
+                        {
+                            assert(!"bad index");
+                            continue;
+                        }
+
+                        // TODO check sequence ?
+                        txmap[inhash][in.prevout.n].nValue = 0;
+
+                        bool empty = true;
+                        const TxOutVector &outVector = txmap[inhash];
+                        for (std::vector<CTxOut>::size_type k = 0; k != outVector.size(); k++)
+                            // const CTxOut &o : txmap[inhash])
+                        {
+                            const CTxOut &o = outVector[k];
+                            if (o.nValue > 0)
+                            {
+                                empty = false;
+                            }
+                        }
+
+                        if (empty)
+                        {
+                            txmap.erase(inhash);
+                        }
+                    }
+                }
+
+
+                // outputs, add
+                for (unsigned int i = 0; i < tx.vout.size(); ++i)
+                {
+                    txmap[hash].push_back(tx.vout[i]);
+                }
+            }
+            pindex = pindex->pnext;
+        }
+    }
+
+    std::map<CBitcoinAddress, uint64_t> utxo;
+    TxMap::iterator it;
+    for (it = txmap.begin(); it != txmap.end(); it++)
+        // const auto &ov : txmap)
+    {
+        const TxOutVector &ov = it->second;
+        for (std::vector<CTxOut>::size_type i = 0; i != ov.size(); i++)
+            //const CTxOut &txo : ov.second)
+        {
+            const CTxOut &txo = ov[i];
+            CTxDestination source;
+            ExtractDestination(txo.scriptPubKey, source);
+            CBitcoinAddress addr(source);
+
+            if (utxo.count(addr))
+            {
+                utxo[addr] += txo.nValue;
+            }
+            else 
+            {
+                utxo[addr] = txo.nValue;
+            }
+        }
+    }
+
+    Array result; 
+    std::map<CBitcoinAddress, uint64_t>::iterator outIterator;
+    for (outIterator = utxo.begin(); outIterator != utxo.end(); outIterator++)
+        //const auto &out : utxo)
+    {
+        const CBitcoinAddress &address = outIterator->first;
+        const uint64_t amount = outIterator->second;
+
+        if (amount == 0)
+        {
+            continue;
+        }
+
+        Object o;
+        o.push_back(Pair(address.ToString(), amount));
+
+        result.push_back(o);
+    }
+
+
+    return result;
+}
