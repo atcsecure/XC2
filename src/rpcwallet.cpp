@@ -2031,14 +2031,12 @@ Value listutxo(const Array & /*params*/, bool fHelp)
             CBlock block; 
             block.ReadFromDisk(pindex, true); 
             for (std::vector<CTransaction>::size_type i = 0; i != block.vtx.size(); i++)
-                // const CTransaction &tx : block.vtx)
             {
                 const CTransaction &tx = block.vtx[i];
                 uint256 hash = tx.GetHash();
 
                 // inputs, remove spent
                 for (std::vector<CTxIn>::size_type j = 0; j != tx.vin.size(); j++)
-                    // const CTxIn &in : tx.vin)
                 {
                     const CTxIn &in = tx.vin[j];
                     const uint256 &inhash = in.prevout.hash;
@@ -2056,7 +2054,6 @@ Value listutxo(const Array & /*params*/, bool fHelp)
                         bool empty = true;
                         const TxOutVector &outVector = txmap[inhash];
                         for (std::vector<CTxOut>::size_type k = 0; k != outVector.size(); k++)
-                            // const CTxOut &o : txmap[inhash])
                         {
                             const CTxOut &o = outVector[k];
                             if (o.nValue > 0)
@@ -2086,11 +2083,9 @@ Value listutxo(const Array & /*params*/, bool fHelp)
     std::map<CBitcoinAddress, uint64_t> utxo;
     TxMap::iterator it;
     for (it = txmap.begin(); it != txmap.end(); it++)
-        // const auto &ov : txmap)
     {
         const TxOutVector &ov = it->second;
         for (std::vector<CTxOut>::size_type i = 0; i != ov.size(); i++)
-            //const CTxOut &txo : ov.second)
         {
             const CTxOut &txo = ov[i];
             CTxDestination source;
@@ -2111,7 +2106,6 @@ Value listutxo(const Array & /*params*/, bool fHelp)
     Array result; 
     std::map<CBitcoinAddress, uint64_t>::iterator outIterator;
     for (outIterator = utxo.begin(); outIterator != utxo.end(); outIterator++)
-        //const auto &out : utxo)
     {
         const CBitcoinAddress &address = outIterator->first;
         const uint64_t amount = outIterator->second;
